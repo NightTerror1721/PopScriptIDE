@@ -47,4 +47,31 @@ public class Assignment extends Statement
     @Override
     public final String toString() { return left + " " + type.getAssociatedOperator() + " " + right; }
     
+    @Override
+    public final boolean equals(Object o)
+    {
+        if(this == o)
+            return true;
+        if(o == null)
+            return false;
+        if(o instanceof Assignment)
+        {
+            Assignment a = (Assignment) o;
+            return type == a.type &&
+                    left.equals(a.left) &&
+                    right.equals(a.right);
+        }
+        return false;
+    }
+
+    @Override
+    public final int hashCode()
+    {
+        int hash = 5;
+        hash = 83 * hash + Objects.hashCode(this.type);
+        hash = 83 * hash + Objects.hashCode(this.left);
+        hash = 83 * hash + Objects.hashCode(this.right);
+        return hash;
+    }
+    
 }

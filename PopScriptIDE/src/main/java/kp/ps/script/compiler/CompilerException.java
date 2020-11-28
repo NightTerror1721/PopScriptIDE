@@ -12,8 +12,4 @@ package kp.ps.script.compiler;
 public class CompilerException extends Exception
 {
     public CompilerException(String message) { super(message); }
-    
-    public boolean hasLine() { return false; }
-    
-    public int getLine() { return -1; }
 }

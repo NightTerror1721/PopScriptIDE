@@ -72,11 +72,44 @@ public final class Operation extends Statement
         return "(" + first + " ? " + second + " : " + third + ")";
     }
     
+    @Override
+    public final boolean equals(Object o)
+    {
+        if(this == o)
+            return true;
+        if(o == null)
+            return false;
+        if(o instanceof Operation)
+        {
+            Operation op = (Operation) o;
+            return operator.equals(op.operator) &&
+                    first.equals(op.first) &&
+                    Objects.equals(second, op.second) &&
+                    Objects.equals(third, op.third);
+        }
+        return false;
+    }
+
+    @Override
+    public final int hashCode()
+    {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.operator);
+        hash = 97 * hash + Objects.hashCode(this.first);
+        hash = 97 * hash + Objects.hashCode(this.second);
+        hash = 97 * hash + Objects.hashCode(this.third);
+        return hash;
+    }
+    
     
     public static final Statement unary(Operator operator, Statement operand)
     {
         if(!operator.isUnary())
             throw new IllegalArgumentException();
+        
+        if(operand.isLiteral() && operator.getOperatorId() == OperatorId.LOGICAL_NOT)
+            return ((Literal) operand).operatorNot();
+        
         return new Operation(operator, operand, null, null);
     }
     
@@ -94,6 +127,10 @@ public final class Operation extends Statement
             case ASSIGNATION_DIVIDE:
                 return assignment(operator, left, right);
         }
+        
+        Statement constResult = constantBinaryOperation(operator.getOperatorId(), left, right);
+        if(constResult != null)
+            return constResult;
         
         return new Operation(operator, left, right, null);
     }
@@ -116,5 +153,33 @@ public final class Operation extends Statement
     public static final Statement namespaceResolver(Statement base, Fragment identifier) throws SyntaxException
     {
         return new NamespaceResolver(base, identifier);
+    }
+    
+    
+    
+    private static Statement constantBinaryOperation(OperatorId op, Statement sLeft, Statement sRight)
+    {
+        Literal left, right;
+        if(!sLeft.isLiteral() || !sRight.isLiteral())
+            return null;
+        
+        left = (Literal) sLeft;
+        right = (Literal) sRight;
+        
+        switch(op)
+        {
+            case ADD: return left.operatorAdd(right);
+            case SUBTRACT: return left.operatorSubtract(right);
+            case MULTIPPLY: return left.operatorMultiply(right);
+            case DIVIDE: return left.operatorDivide(right);
+            case EQUALS: return left.operatorEquals(right);
+            case DIFFERENT: return left.operatorNotEquals(right);
+            case GREATER: return left.operatorGreater(right);
+            case LESS: return left.operatorLess(right);
+            case GREATER_EQUALS: return left.operatorGreaterOrEquals(right);
+            case LESS_EQUALS: return left.operatorLessOrEquals(right);
+        }
+        
+        return null;
     }
 }

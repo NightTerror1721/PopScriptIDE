@@ -7,10 +7,12 @@ package kp.ps.script.parser;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.parser.args.Argument;
 
 /**
@@ -112,13 +114,36 @@ public final class ArgumentList extends Fragment implements Iterable<Argument>
     }
     
     
-    /*public static final ArgumentList argsToCall(FragmentList frags)
+    public static final ArgumentList argsToCall(FragmentList frags) throws CompilerException
     {
         LinkedList<Argument> args = new LinkedList<>();
         FragmentList[] parts = frags.split(Separator.COMMA);
         for(FragmentList part : parts)
         {
-            Statement statement = 
+            if(part.isEmpty())
+                throw new SyntaxException("Cannot has empty argument in arguments list.");
+            Statement statement = StatementParser.parse(part);
+            args.add(Argument.call(statement));
         }
-    }*/
+        
+        return new ArgumentList(false, args.toArray(Argument[]::new));
+    }
+    
+    public static final ArgumentList argsToDeclaration(FragmentList frags) throws CompilerException
+    {
+        LinkedList<Argument> args = new LinkedList<>();
+        FragmentList[] parts = frags.split(Separator.COMMA);
+        for(FragmentList part : parts)
+        {
+            if(part.size() != 2 || !part.get(0).isType() || !part.get(1).isIdentifier())
+                throw new SyntaxException("Required a comma-separated <type> <identifier> vars in macro parameters.");
+            
+            Identifier name = (Identifier) part.get(1);
+            Type type = (Type) part.get(0);
+            
+            args.add(Argument.declaration(type, name));
+        }
+        
+        return new ArgumentList(true, args.toArray(Argument[]::new));
+    }
 }

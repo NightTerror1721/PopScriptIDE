@@ -16,7 +16,10 @@ public enum CommandId
     EVERY("every"),
     DO("do"),
     CONST("const"),
-    MACRO("macro");
+    MACRO("macro"),
+    IMPORT("import"),
+    NAMESPACE("namespace"),
+    RETURN("return");
     
     private final String name;
     

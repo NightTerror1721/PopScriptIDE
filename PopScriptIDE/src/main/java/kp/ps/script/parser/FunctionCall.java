@@ -5,6 +5,8 @@
  */
 package kp.ps.script.parser;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,4 +48,28 @@ public class FunctionCall extends Statement
                 .collect(Collectors.joining(", ", "(", ")"));
     }
     
+    @Override
+    public final boolean equals(Object o)
+    {
+        if(this == o)
+            return true;
+        if(o == null)
+            return false;
+        if(o instanceof FunctionCall)
+        {
+            FunctionCall fc = (FunctionCall) o;
+            return identifier.equals(fc.identifier) &&
+                    Arrays.equals(args, fc.args);
+        }
+        return false;
+    }
+
+    @Override
+    public final int hashCode()
+    {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(this.identifier);
+        hash = 29 * hash + Arrays.deepHashCode(this.args);
+        return hash;
+    }
 }

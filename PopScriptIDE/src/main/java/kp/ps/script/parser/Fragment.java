@@ -18,6 +18,12 @@ public abstract class Fragment
     @Override
     public abstract String toString();
     
+    @Override
+    public abstract boolean equals(Object o);
+    
+    @Override
+    public abstract int hashCode();
+    
     
     public final boolean isIdentifier() { return getFragmentType() == FragmentType.IDENTIFIER; }
     public final boolean isCommand() { return getFragmentType() == FragmentType.COMMAND; }

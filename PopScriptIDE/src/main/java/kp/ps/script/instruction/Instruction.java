@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.script.compiler;
+package kp.ps.script.instruction;
 
 /**
  *
- * @author Marc
+ * @author mpasc
  */
-public class CompilerError
+public class Instruction
 {
     
 }

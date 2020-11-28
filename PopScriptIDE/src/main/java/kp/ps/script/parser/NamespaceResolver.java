@@ -5,6 +5,9 @@
  */
 package kp.ps.script.parser;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  *
  * @author Marc
@@ -63,4 +66,30 @@ public final class NamespaceResolver extends Statement
         return base + "." + identifier;
     }
     
+    @Override
+    public final boolean equals(Object o)
+    {
+        if(this == o)
+            return true;
+        if(o == null)
+            return false;
+        if(o instanceof NamespaceResolver)
+        {
+            NamespaceResolver nr = (NamespaceResolver) o;
+            return identifier.equals(nr.identifier) && isChain()
+                    ? nr.isChain() && baseResolver.equals(nr.baseResolver)
+                    : !nr.isChain() && base.equals(nr.base);
+        }
+        return false;
+    }
+
+    @Override
+    public final int hashCode()
+    {
+        int hash = 7;
+        hash = 19 * hash + Objects.hashCode(this.identifier);
+        hash = 19 * hash + Objects.hashCode(this.baseResolver);
+        hash = 19 * hash + Objects.hashCode(this.base);
+        return hash;
+    }
 }
