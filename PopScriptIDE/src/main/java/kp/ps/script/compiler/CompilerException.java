@@ -12,4 +12,8 @@ package kp.ps.script.compiler;
 public class CompilerException extends Exception
 {
     public CompilerException(String message) { super(message); }
+    public CompilerException(String messageFormat, Object... values)
+    {
+        super(String.format(messageFormat, values));
+    }
 }

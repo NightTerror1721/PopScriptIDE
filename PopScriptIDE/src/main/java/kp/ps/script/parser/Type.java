@@ -43,6 +43,8 @@ public final class Type extends Fragment
     
     public final boolean equals(Type other) { return getTypeId() == other.getTypeId(); }
     
+    public final boolean isFieldAssignable() { return getTypeId().isFieldAssignable(); }
+    
     @Override
     public final boolean equals(Object o)
     {

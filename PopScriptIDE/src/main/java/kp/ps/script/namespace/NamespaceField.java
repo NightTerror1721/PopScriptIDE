@@ -26,7 +26,7 @@ public abstract class NamespaceField
         this.name = Objects.requireNonNull(name);
     }
     
-    public final TypeId getDataType() { return type; }
+    public final TypeId getType() { return type; }
     public final String getName() { return name; }
     
     public abstract NamespaceFieldType getFieldType();
@@ -35,12 +35,10 @@ public abstract class NamespaceField
     public final boolean isInternal() { return getFieldType() == NamespaceFieldType.INTERNAL; }
     public final boolean isConstant() { return getFieldType() == NamespaceFieldType.CONSTANT; }
     
-    public boolean isAlias() { return false; }
-    
-    public ScriptToken getToken() { throw new UnsupportedOperationException(); }
-    public ScriptInternal getInternal() { throw new UnsupportedOperationException(); }
-    public Int32 getValue() { throw new UnsupportedOperationException(); }
-    public NamespaceField getReferencedField() { throw new UnsupportedOperationException(); }
+    public ScriptToken getToken() { throw new IllegalStateException(); }
+    public ScriptInternal getInternal() { throw new IllegalStateException(); }
+    public Int32 getValue() { throw new IllegalStateException(); }
+    public NamespaceField getReferencedField() { throw new IllegalStateException(); }
     
     
     static final NamespaceField token(TypeId type, String name, ScriptToken token)
@@ -56,10 +54,5 @@ public abstract class NamespaceField
     public static final NamespaceField constant(String name, Int32 value)
     {
         return new ConstantNamespaceField(name, value);
-    }
-    
-    public static final NamespaceField alias(String name, NamespaceField field)
-    {
-        return new AliasNamespaceField(name, field);
     }
 }

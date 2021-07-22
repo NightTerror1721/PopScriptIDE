@@ -58,6 +58,11 @@ public final class ArgumentList extends Fragment implements Iterable<Argument>
         return Arrays.equals(args, other.args);
     }
     
+    public final Stream<Argument> stream()
+    {
+        return Stream.of(args);
+    }
+    
     @Override
     public final FragmentType getFragmentType() { return FragmentType.ARGUMENT_LIST; }
 

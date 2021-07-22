@@ -5,11 +5,13 @@
  */
 package kp.ps.script.instruction;
 
+import kp.ps.script.compiler.CompilerState;
+
 /**
  *
  * @author mpasc
  */
-public class Instruction
+public abstract class Instruction
 {
-    
+    public abstract void compile(CompilerState state);
 }

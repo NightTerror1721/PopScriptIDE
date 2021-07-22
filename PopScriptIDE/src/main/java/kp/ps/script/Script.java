@@ -75,6 +75,17 @@ public final class Script
         codes.copyFrom(other.codes);
     }
     
+    public final void insertCodes(int index, UInt16[] codes, int off, int len)
+    {
+        for(int i = off; i < len; ++i)
+        {
+            if(index >= MAX_CODES)
+                break;
+            
+            this.codes.writeUnsignedInt16((index++) * UInt16.BYTES, codes[i]);
+        }
+    }
+    public final void insertCodes(int index, UInt16[] codes) { insertCodes(index, codes, 0, codes.length); }
     public final void insertCodes(int index, Iterable<UInt16> codes)
     {
         for(UInt16 code : codes)
@@ -121,6 +132,17 @@ public final class Script
         return Objects.requireNonNullElse(fields[index], ScriptField.INVALID);
     }
     
+    public final void insertFields(int index, ScriptField[] fields, int off, int len)
+    {
+        for(int i = off; i < len; ++i)
+        {
+            if(index >= this.fields.length)
+                break;
+            
+            this.fields[index++] = Objects.requireNonNullElse(fields[i], ScriptField.INVALID);
+        }
+    }
+    public final void insertFields(int index, ScriptField[] fields) { insertFields(index, fields, 0, fields.length); }
     public final void insertFields(int index, Iterable<ScriptField> fields)
     {
         for(ScriptField field : fields)

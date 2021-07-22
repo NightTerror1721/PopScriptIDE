@@ -5,6 +5,7 @@
  */
 package kp.ps.script.instruction;
 
+import java.util.List;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.utils.CodeReader;
 
@@ -16,7 +17,7 @@ public final class InstructionParser
 {
     private InstructionParser() {}
     
-    public static final Instruction parse(CodeReader source, ErrorList errors, boolean singleInstruction)
+    public static final List<Instruction> parse(CodeReader source, ErrorList errors, boolean singleInstruction)
     {
         return null;
     }

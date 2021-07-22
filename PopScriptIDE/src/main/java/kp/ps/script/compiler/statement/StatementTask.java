@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.script.namespace;
+package kp.ps.script.compiler.statement;
+
+import kp.ps.script.compiler.CompilerException;
 
 /**
  *
  * @author Marc
  */
-public enum NamespaceFieldType
+@FunctionalInterface
+public interface StatementTask
 {
-    TOKEN,
-    INTERNAL,
-    CONSTANT,
-    MACRO;
+    StatementValue compile() throws CompilerException;
 }

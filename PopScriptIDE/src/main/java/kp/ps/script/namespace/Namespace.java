@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.Macro;
 import kp.ps.script.compiler.TypeId;
 
 /**
@@ -21,6 +22,7 @@ public final class Namespace
     private final Namespace parent;
     private final HashMap<String, Namespace> children;
     private final HashMap<String, NamespaceField> fields;
+    private final HashMap<String, Macro> macros;
     
     private Namespace(String name, Namespace parent)
     {
@@ -28,6 +30,7 @@ public final class Namespace
         this.name = name;
         this.children = new HashMap<>();
         this.fields = new HashMap<>();
+        this.macros = new HashMap<>();
     }
     
     public final String getName() { return name; }
@@ -38,12 +41,31 @@ public final class Namespace
     
     public final Namespace getChild(String name) { return children.get(name); }
     
+    public final boolean existsChild(String name) { return children.containsKey(name); }
+    
     public final NamespaceField getField(String name)
     {
         NamespaceField field = fields.get(name);
-        if(field == null && parent == null)
-            field = GLOBALS.get(name);
+        if(field == null)
+            field = parent == null ? GLOBALS.get(name) : parent.getField(name);
         return field;
+    }
+    
+    public final boolean existsField(String name) { return getField(name) != null; }
+    
+    public final Macro getMacro(String name)
+    {
+        Macro macro = macros.get(name);
+        if(macro == null && parent != null)
+            macro = parent.getMacro(name);
+        return macro;
+    }
+    
+    public final boolean existsMacro(String name) { return getMacro(name) != null; }
+    
+    public static final Namespace createRoot()
+    {
+        return new Namespace(null, null);
     }
     
     public final Namespace createChild(String name)
@@ -56,6 +78,23 @@ public final class Namespace
     public final void addField(NamespaceField field)
     {
         fields.put(Objects.requireNonNull(field).getName(), field);
+    }
+    
+    private String toString(boolean printGlobal)
+    {
+        if(parent == null)
+        {
+            if(printGlobal)
+                return "<global>";
+            return "";
+        }
+        return toString(printGlobal) + "." + name;
+    }
+    
+    @Override
+    public final String toString()
+    {
+        return toString(parent != null);
     }
     
     

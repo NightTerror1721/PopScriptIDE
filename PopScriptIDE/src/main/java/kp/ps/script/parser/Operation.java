@@ -45,6 +45,9 @@ public final class Operation extends Statement
         }
     }
     
+    public final Operator getOperator() { return operator; }
+    
+    public final boolean isUnary() { return operator.isUnary(); }
     public final boolean isSuffixUnary() { return operator.isSuffixUnary(); }
     public final boolean isPrefixUnary() { return operator.isPrefixUnary(); }
     public final boolean isBinary() { return operator.isBinary(); }
@@ -54,6 +57,10 @@ public final class Operation extends Statement
     
     public final Statement getBinaryLeftOperand() { return first; }
     public final Statement getBinaryRightOperand() { return second; }
+    
+    public final Statement getTernaryCondition() { return first; }
+    public final Statement getTernaryTrueAction() { return second; }
+    public final Statement getTernaryFalseAction() { return third; }
     
     
     
@@ -108,7 +115,16 @@ public final class Operation extends Statement
             throw new IllegalArgumentException();
         
         if(operand.isLiteral() && operator.getOperatorId() == OperatorId.LOGICAL_NOT)
-            return ((Literal) operand).operatorNot();
+        {
+            switch(operator.getOperatorId())
+            {
+                case LOGICAL_NOT:
+                    return ((Literal) operand).operatorNot();
+                    
+                case UNARY_MINUS:
+                    return((Literal) operand).operatorNegative();
+            }
+        }
         
         return new Operation(operator, operand, null, null);
     }

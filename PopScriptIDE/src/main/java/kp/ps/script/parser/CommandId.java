@@ -15,6 +15,7 @@ public enum CommandId
     ELSE("else"),
     EVERY("every"),
     DO("do"),
+    VAR("var"),
     CONST("const"),
     MACRO("macro"),
     IMPORT("import"),

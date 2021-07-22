@@ -14,6 +14,10 @@ import kp.ps.utils.ints.Int32;
  */
 public class Literal extends Statement
 {
+    public static final Literal ONE = new Literal(Int32.valueOf(1));
+    public static final Literal ZERO = new Literal(Int32.valueOf(0));
+    public static final Literal MINUSONE = new Literal(Int32.valueOf(-1));
+    
     private final Int32 value;
     
     public Literal(Int32 value)
@@ -76,6 +80,11 @@ public class Literal extends Statement
     public final Literal operatorDivide(Literal right)
     {
         return new Literal(Int32.valueOf(value.toInt() / right.value.toInt()));
+    }
+    
+    public final Literal operatorNegative()
+    {
+        return new Literal(Int32.valueOf(-value.toInt()));
     }
     
     public final Literal operatorTest()

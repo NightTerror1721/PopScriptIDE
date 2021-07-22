@@ -29,6 +29,8 @@ public enum TypeId
     
     public final String getTypeName() { return name; }
     
+    public final boolean isFieldAssignable() { return this == INT; }
+    
     @Override
     public final String toString() { return name; }
 }

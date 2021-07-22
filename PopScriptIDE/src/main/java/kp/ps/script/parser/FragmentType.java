@@ -15,7 +15,6 @@ public enum FragmentType
     COMMAND,
     TYPE,
     LITERAL,
-    STRING,
     OPERATOR,
     OPERATION,
     ASSIGNMENT,

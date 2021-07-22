@@ -21,6 +21,7 @@ public enum OperatorId
     PREFIX_INCREASE("++", 3, false),
     PREFIX_DECREASE("--", 3, false),
     LOGICAL_NOT("!", 3, false),
+    UNARY_MINUS("-", 3, false),
     
     MULTIPPLY("*", 4, true),
     DIVIDE("/", 4, true),
@@ -40,7 +41,7 @@ public enum OperatorId
     
     OR("||", 9, true),
     
-    ELVIS(":?", 10, true),
+    ELVIS("?:", 10, true),
     
     ASSIGNATION("=", 11, false),
     ASSIGNATION_ADD("+=", 11, false),
@@ -85,6 +86,7 @@ public enum OperatorId
             case PREFIX_INCREASE:
             case PREFIX_DECREASE:
             case LOGICAL_NOT:
+            case UNARY_MINUS:
                 return true;
         }
         return false;
@@ -99,6 +101,7 @@ public enum OperatorId
             case PREFIX_INCREASE:
             case PREFIX_DECREASE:
             case LOGICAL_NOT:
+            case UNARY_MINUS:
                 return true;
         }
         return false;

@@ -7,6 +7,7 @@ package kp.ps.script;
 
 import java.util.Objects;
 import kp.ps.utils.ints.Int32;
+import kp.ps.utils.ints.UInt16;
 import kp.ps.utils.ints.UInt32;
 
 /**
@@ -43,8 +44,8 @@ public class ScriptField
     public static final ScriptField user(Int32 index) { return new ScriptField(ScriptFieldType.USER, index); }
     public static final ScriptField user(int index) { return user(Int32.valueOf(index)); }
     
-    public static final ScriptField internal(Int32 index) { return new ScriptField(ScriptFieldType.INTERNAL, index); }
-    public static final ScriptField internal(int index) { return internal(Int32.valueOf(index)); }
+    public static final ScriptField internal(UInt16 index) { return new ScriptField(ScriptFieldType.INTERNAL, Int32.valueOf(index.toInt())); }
+    public static final ScriptField internal(int index) { return internal(UInt16.valueOf(index)); }
     
     public static final ScriptField invalid() { return INVALID; }
     

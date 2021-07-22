@@ -44,7 +44,7 @@ public final class StatementParser
             if(!prefix.isPrefixUnary())
                 throw new CompilerException("Operator " + prefix + " cannot be a non unary prefix operator");
             
-            part = packNextOperatorPart(it, (Operator) part);
+            part = packNextOperatorPart(it, prefix);
             if(!part.isStatement())
                 throw new CompilerException("Expected valid operand. But found: " + part);
             
