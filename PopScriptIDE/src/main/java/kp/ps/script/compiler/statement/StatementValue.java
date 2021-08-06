@@ -8,11 +8,13 @@ package kp.ps.script.compiler.statement;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
 import kp.ps.script.compiler.LocalElementsScope.Element;
 import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.TypedValue;
 import kp.ps.script.namespace.Namespace;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.script.parser.Identifier;
@@ -38,14 +40,14 @@ public abstract class StatementValue implements StatementTask
         String name = identifier.getIdentifier();
         if(state.getLocalElements().exists(name))
             return of(state.getLocalElements().get(name));
-        if(state.getRootNamespace().existsField(name))
-            return of(state.getRootNamespace().getField(name));
+        if(state.getNamespace().existsField(name))
+            return of(state.getNamespace().getField(name));
         throw new CompilerException("'" + identifier + "' identifier not found.");
     }
     
     public static final StatementValue decode(CompilerState state, NamespaceResolver resolver) throws CompilerException
     {
-        Namespace namespace = resolver.findNamespace(state.getRootNamespace());
+        Namespace namespace = resolver.findNamespace(state.getNamespace());
         String name = resolver.getLastIdentifier().getIdentifier();
         if(!namespace.existsField(name))
             throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
@@ -77,12 +79,12 @@ public abstract class StatementValue implements StatementTask
     public abstract VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException;
     public abstract Int32 getConstantValue();
     public abstract ScriptInternal getInternal();
-    public abstract ScriptToken getToken();
+    public abstract TypedValue getTypedValue();
     
     public final boolean isConstant() { return getKind() == Kind.CONSTANT; }
     public final boolean isVariable() { return getKind() == Kind.VARIABLE; }
     public final boolean isInternal() { return getKind() == Kind.INTERNAL; }
-    public final boolean isToken() { return getKind() == Kind.TOKEN; }
+    public final boolean isTypedValue() { return getKind() == Kind.TYPED_VALUE; }
     
     public final VariableIndex getVariableIndexWithoutTemporalCreation()
     {
@@ -118,8 +120,8 @@ public abstract class StatementValue implements StatementTask
                 }
                 case INTERNAL:
                     return getInternal() == val.getInternal();
-                case TOKEN:
-                    return getToken() == val.getToken();
+                case TYPED_VALUE:
+                    return getTypedValue().equals(val.getTypedValue());
                 default:
                     throw new IllegalStateException();
             }
@@ -128,10 +130,63 @@ public abstract class StatementValue implements StatementTask
     }
     
     @Override
-    public final StatementValue compile() { return this; }
+    public final MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
+    {
+        /*if(!retloc.isInvalid())
+            throw new IllegalStateException();
+        
+        switch(getKind())
+        {
+            case VARIABLE:
+                state.getCode().insertFieldCode(state.getFields().getVariableFieldLocation(getVariableIndex(true)));
+                break;
+                
+            case CONSTANT:
+                state.getCode().insertFieldCode(state.getFields().registerConstant(getConstantValue()));
+                break;
+                
+            case INTERNAL:
+                state.getCode().insertFieldCode(state.getFields().registerInternal(getInternal()));
+                break;
+                
+            case TYPED_VALUE:
+                throw new CompilerException("Cannot use token values in statement environment.");
+                
+            default:
+                throw new IllegalStateException();
+        }*/
+        
+        return toMemoryAddress();
+    }
+    
+    @Override
+    public final int constCompile() throws CompilerException
+    {
+        if(!isConstant())
+            throw new CompilerException("Cannot use non constant elements in const environment");
+        return getConstantValue().toInt();
+    }
+    
+    @Override
+    public final ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    {
+        if(isTypedValue())
+            throw new CompilerException("Cannot apply boolean test into token element.");
+        
+        if(isConstant())
+            return ConditionalState.evaluate(getConstantValue());
+        
+        cond.insertTokenCode(ScriptToken.NOT_EQUAL_TO);
+        toMemoryAddress().compileRead(state, cond);
+        MemoryAddress.of(Int32.ZERO).compileRead(state, cond);
+        
+        return ConditionalState.UNKNOWN;
+    }
 
     @Override
     public int hashCode() { return super.hashCode(); }
+    
+    public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     
     
     public static enum Kind
@@ -139,7 +194,7 @@ public abstract class StatementValue implements StatementTask
         VARIABLE,
         CONSTANT,
         INTERNAL,
-        TOKEN
+        TYPED_VALUE
     }
     
     public static enum Location
@@ -175,7 +230,7 @@ public abstract class StatementValue implements StatementTask
         public final ScriptInternal getInternal() { throw new IllegalStateException(); }
 
         @Override
-        public final ScriptToken getToken() { throw new IllegalStateException(); }
+        public final TypedValue getTypedValue() { throw new IllegalStateException(); }
     }
     
     private static final class LocalElementValue extends StatementValue
@@ -193,8 +248,8 @@ public abstract class StatementValue implements StatementTask
                 return Kind.CONSTANT;
             else if(element.isInternal())
                 return Kind.INTERNAL;
-            else if(element.isToken())
-                return Kind.TOKEN;
+            else if(element.isTypedValue())
+                return Kind.TYPED_VALUE;
             else throw new IllegalStateException();
         }
 
@@ -229,10 +284,10 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final ScriptToken getToken()
+        public final TypedValue getTypedValue()
         {
-            if(element.isToken())
-                return element.getToken();
+            if(element.isTypedValue())
+                return element.getTypedValue();
             throw new IllegalStateException();
         }
     }
@@ -250,8 +305,8 @@ public abstract class StatementValue implements StatementTask
                 return Kind.CONSTANT;
             else if(field.isInternal())
                 return Kind.INTERNAL;
-            else if(field.isToken())
-                return Kind.TOKEN;
+            else if(field.isTypedValue())
+                return Kind.TYPED_VALUE;
             else throw new IllegalStateException();
         }
 
@@ -281,10 +336,10 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final ScriptToken getToken()
+        public final TypedValue getTypedValue()
         {
-            if(field.isToken())
-                return field.getToken();
+            if(field.isTypedValue())
+                return field.getTypedValue();
             throw new IllegalStateException();
         }
     }

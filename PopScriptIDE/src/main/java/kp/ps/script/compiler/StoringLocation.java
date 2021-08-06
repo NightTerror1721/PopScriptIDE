@@ -43,14 +43,14 @@ public abstract class StoringLocation
         String name = identifier.getIdentifier();
         if(state.getLocalElements().exists(name))
             return of(state.getLocalElements().get(name));
-        if(state.getRootNamespace().existsField(name))
-            return of(state.getRootNamespace().getField(name));
+        if(state.getNamespace().existsField(name))
+            return of(state.getNamespace().getField(name));
         throw new CompilerException("'" + identifier + "' identifier not found.");
     }
     
     public static final StoringLocation decode(CompilerState state, NamespaceResolver resolver) throws CompilerException
     {
-        Namespace namespace = resolver.findNamespace(state.getRootNamespace());
+        Namespace namespace = resolver.findNamespace(state.getNamespace());
         String name = resolver.getLastIdentifier().getIdentifier();
         if(!namespace.existsField(name))
             throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");

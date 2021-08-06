@@ -7,8 +7,10 @@ package kp.ps.script.namespace;
 
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
-import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.TypedValue;
+import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -17,33 +19,32 @@ import kp.ps.utils.ints.Int32;
  */
 public abstract class NamespaceField
 {
-    private final TypeId type;
     private final String name;
     
-    protected NamespaceField(TypeId type, String name)
+    protected NamespaceField(String name)
     {
-        this.type = Objects.requireNonNull(type);
         this.name = Objects.requireNonNull(name);
     }
     
-    public final TypeId getType() { return type; }
+    public abstract TypeId getType();
     public final String getName() { return name; }
     
     public abstract NamespaceFieldType getFieldType();
     
-    public final boolean isToken() { return getFieldType() == NamespaceFieldType.TOKEN; }
+    public final boolean isTypedValue() { return getFieldType() == NamespaceFieldType.TOKEN; }
     public final boolean isInternal() { return getFieldType() == NamespaceFieldType.INTERNAL; }
     public final boolean isConstant() { return getFieldType() == NamespaceFieldType.CONSTANT; }
     
-    public ScriptToken getToken() { throw new IllegalStateException(); }
+    public TypedValue getTypedValue() { throw new IllegalStateException(); }
     public ScriptInternal getInternal() { throw new IllegalStateException(); }
     public Int32 getValue() { throw new IllegalStateException(); }
-    public NamespaceField getReferencedField() { throw new IllegalStateException(); }
+    
+    public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     
     
-    static final NamespaceField token(TypeId type, String name, ScriptToken token)
+    static final NamespaceField typedValue(String name, TypedValue value)
     {
-        return new TokenNamespaceField(type, name, token);
+        return new TypedValueNamespaceField(name, value);
     }
     
     static final NamespaceField internal(String name, ScriptInternal internal)

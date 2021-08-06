@@ -19,12 +19,15 @@ final class InternalNamespaceField extends NamespaceField
     
     InternalNamespaceField(String name, ScriptInternal internal)
     {
-        super(TypeId.INT, name);
+        super(name);
         this.internal = Objects.requireNonNull(internal);
     }
     
     @Override
     public final NamespaceFieldType getFieldType() { return NamespaceFieldType.INTERNAL; }
+    
+    @Override
+    public final TypeId getType() { return TypeId.INT; }
     
     @Override
     public final ScriptInternal getInternal() { return internal; }

@@ -15,70 +15,70 @@ import kp.ps.utils.ints.UInt16;
  */
 public enum ScriptInternal
 {
-    GAME_TURN(0, false),
-    MY_NUM_PEOPLE(1, false),
-    BLUE_PEOPLE(2, false),
-    RED_PEOPLE(3, false),
-    YELLOW_PEOPLE(4, false),
-    GREEN_PEOPLE(5, false),
-    MY_NUM_KILLED_BY_HUMAN(6, false),
-    RED_RED_KILLED_BY_HUMAN(7, false),
-    YELLOW_RED_KILLED_BY_HUMAN(8, false),
-    GREEN_RED_KILLED_BY_HUMAN(9, false),
-    WILD_PEOPLE(10, false),
-    BLUE_MANA(11, false),
-    RED_MANA(12, false),
-    YELLOW_MANA(13, false),
-    GREEN_MANA(14, false),
+    GAME_TURN(0, false, true),
+    MY_NUM_PEOPLE(1, false, true),
+    BLUE_PEOPLE(2, false, true),
+    RED_PEOPLE(3, false, true),
+    YELLOW_PEOPLE(4, false, true),
+    GREEN_PEOPLE(5, false, true),
+    MY_NUM_KILLED_BY_HUMAN(6, false, true),
+    RED_RED_KILLED_BY_HUMAN(7, false, true),
+    YELLOW_RED_KILLED_BY_HUMAN(8, false, true),
+    GREEN_RED_KILLED_BY_HUMAN(9, false, true),
+    WILD_PEOPLE(10, false, true),
+    BLUE_MANA(11, false, true),
+    RED_MANA(12, false, true),
+    YELLOW_MANA(13, false, true),
+    GREEN_MANA(14, false, true),
 
-    ATTR_EXPANSION(0),
-    ATTR_PREF_SPY_TRAINS(1),
-    ATTR_PREF_RELIGIOUS_TRAINS(2),
-    ATTR_PREF_WARRIOR_TRAINS(3),
-    ATTR_PREF_FIREWARRIOR_TRAINS(4),
-    ATTR_PREF_SPY_PEOPLE(5),
-    ATTR_PREF_RELIGIOUS_PEOPLE(6),
-    ATTR_PREF_WARRIOR_PEOPLE(7),
-    ATTR_PREF_FIREWARRIOR_PEOPLE(8),
-    ATTR_MAX_BUILDINGS_ON_GO(9),
-    ATTR_HOUSE_PERCENTAGE(10),
-    ATTR_AWAY_BRAVE(11),
-    ATTR_AWAY_WARRIOR(12),
-    ATTR_AWAY_RELIGIOUS(13),
-    ATTR_DEFENSE_RAD_INCR(14),
-    ATTR_MAX_DEFENSIVE_ACTIONS(15),
-    ATTR_AWAY_SPY(16),
-    ATTR_AWAY_FIREWARRIOR(17),
-    ATTR_ATTACK_PERCENTAGE(18),
-    ATTR_AWAY_SHAMAN(19),
-    ATTR_PEOPLE_PER_BOAT(20),
-    ATTR_PEOPLE_PER_BALLON(21),
-    ATTR_DONT_USE_BOATS(22),
-    ATTR_MAX_SPY_ATTACKS(23),
-    ATTR_ENEMY_SPY_MAX_STAND(24),
-    ATTR_MAX_ATTACKS(25),
-    ATTR_EMPTY_AT_WAYPOING(26),
-    ATTR_SPY_CHECK_FREQUENCY(27),
-    ATTR_RETREAT_VALUE(28),
-    ATTR_BASE_UNDER_ATTACK_RETREAT(29),
-    ATTR_RANDOM_BUILD_SIDE(30),
-    ATTR_USE_PREACHER_FOR_DEFENSE(31),
-    ATTR_SHAMEN_BLAST(32),
-    ATTR_MAX_TRAIN_AT_ONCE(33),
-    ATTR_GROUP_OPTION(34),
-    ATTR_PREF_BOAT_HUTS(35),
-    ATTR_PREF_BALLON_HUTS(36),
-    ATTR_PREF_BOAT_DRIVERS(37),
-    ATTR_PREF_BALLON_DRIVERS(38),
-    ATTR_FIGHT_STOP_DISTANCE(39),
-    ATTR_SPY_DISCOVER_CHANGE(40),
-    ATTR_COUNT_PREACH_DAMAGE(41),
-    ATTR_DONT_GROUP_AT_DT(42),
-    ATTR_SPELL_DELAY(43),
-    ATTR_DONT_DELETE_USELESS_BOAT_HOUSE(44),
-    ATTR_BOAT_HOUSE_BROKEN(45),
-    ATTR_DONT_AUTO_TRAIN_PREACHERS(46),
-    ATTR_SPARE_6(47),
+    ATTR_EXPANSION(0, true, false),
+    ATTR_PREF_SPY_TRAINS(1, true, false),
+    ATTR_PREF_RELIGIOUS_TRAINS(2, true, false),
+    ATTR_PREF_WARRIOR_TRAINS(3, true, false),
+    ATTR_PREF_FIREWARRIOR_TRAINS(4, true, false),
+    ATTR_PREF_SPY_PEOPLE(5, true, false),
+    ATTR_PREF_RELIGIOUS_PEOPLE(6, true, false),
+    ATTR_PREF_WARRIOR_PEOPLE(7, true, false),
+    ATTR_PREF_FIREWARRIOR_PEOPLE(8, true, false),
+    ATTR_MAX_BUILDINGS_ON_GO(9, true, false),
+    ATTR_HOUSE_PERCENTAGE(10, true, false),
+    ATTR_AWAY_BRAVE(11, true, false),
+    ATTR_AWAY_WARRIOR(12, true, false),
+    ATTR_AWAY_RELIGIOUS(13, true, false),
+    ATTR_DEFENSE_RAD_INCR(14, true, false),
+    ATTR_MAX_DEFENSIVE_ACTIONS(15, true, false),
+    ATTR_AWAY_SPY(16, true, false),
+    ATTR_AWAY_FIREWARRIOR(17, true, false),
+    ATTR_ATTACK_PERCENTAGE(18, true, false),
+    ATTR_AWAY_SHAMAN(19, true, false),
+    ATTR_PEOPLE_PER_BOAT(20, true, false),
+    ATTR_PEOPLE_PER_BALLON(21, true, false),
+    ATTR_DONT_USE_BOATS(22, true, false),
+    ATTR_MAX_SPY_ATTACKS(23, true, false),
+    ATTR_ENEMY_SPY_MAX_STAND(24, true, false),
+    ATTR_MAX_ATTACKS(25, true, false),
+    ATTR_EMPTY_AT_WAYPOING(26, true, false),
+    ATTR_SPY_CHECK_FREQUENCY(27, true, false),
+    ATTR_RETREAT_VALUE(28, true, false),
+    ATTR_BASE_UNDER_ATTACK_RETREAT(29, true, false),
+    ATTR_RANDOM_BUILD_SIDE(30, true, false),
+    ATTR_USE_PREACHER_FOR_DEFENSE(31, true, false),
+    ATTR_SHAMEN_BLAST(32, true, false),
+    ATTR_MAX_TRAIN_AT_ONCE(33, true, false),
+    ATTR_GROUP_OPTION(34, true, false),
+    ATTR_PREF_BOAT_HUTS(35, true, false),
+    ATTR_PREF_BALLON_HUTS(36, true, false),
+    ATTR_PREF_BOAT_DRIVERS(37, true, false),
+    ATTR_PREF_BALLON_DRIVERS(38, true, false),
+    ATTR_FIGHT_STOP_DISTANCE(39, true, false),
+    ATTR_SPY_DISCOVER_CHANGE(40, true, false),
+    ATTR_COUNT_PREACH_DAMAGE(41, true, false),
+    ATTR_DONT_GROUP_AT_DT(42, true, false),
+    ATTR_SPELL_DELAY(43, true, false),
+    ATTR_DONT_DELETE_USELESS_BOAT_HOUSE(44, true, false),
+    ATTR_BOAT_HOUSE_BROKEN(45, true, false),
+    ATTR_DONT_AUTO_TRAIN_PREACHERS(46, true, false),
+    ATTR_SPARE_6(47, true, false),
 
     MY_MANA(48),
 
@@ -319,19 +319,22 @@ public enum ScriptInternal
     GUARD_WITH_GHOSTS(1, false);*/
 
     private final UInt16 code;
+    private final boolean constant;
 
-    private ScriptInternal(int code, boolean useOffset)
+    private ScriptInternal(int code, boolean useOffset, boolean isConstant)
     {
         this.code = UInt16.valueOf((useOffset ? INT_OFFSET : 0) + code);
-
+        this.constant = isConstant;
     }
-    private ScriptInternal(int code) { this(code, true); }
+    private ScriptInternal(int code) { this(code, true, true); }
 
     public final String getInternalName() { return name(); }
 
     public final UInt16 getCode() { return code; }
 
     public final boolean equalsCode(UInt16 code) { return this.code.equals(code); }
+    
+    public final boolean isConstant() { return constant; }
 
     private static final HashMap<String, ScriptInternal> BY_NAME = new HashMap<>();
     private static final HashMap<UInt16, ScriptInternal> BY_CODE = new HashMap<>();

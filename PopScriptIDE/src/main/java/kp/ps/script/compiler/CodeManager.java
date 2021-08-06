@@ -36,8 +36,20 @@ public class CodeManager
         insertCode(token.getCode());
     }
     
+    public final void insertTypedValueCode(TypedValue value) throws CompilerException
+    {
+        insertTokenCode(value.getToken());
+    }
+    
     public final void insertToScript(Script script)
     {
         script.insertCodes(bytecode);
+    }
+    
+    public final void insertCode(CodeManager code) throws CompilerException
+    {
+        if(bytecode.size() + code.bytecode.size() >= Script.MAX_CODES)
+            throw new CompilerException("Max bytecode data exceded.");
+        bytecode.addAll(code.bytecode);
     }
 }

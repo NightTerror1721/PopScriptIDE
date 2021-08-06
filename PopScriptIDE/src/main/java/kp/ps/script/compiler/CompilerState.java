@@ -17,11 +17,10 @@ import kp.ps.utils.CodeReader;
 public final class CompilerState
 {
     private final FieldsManager fieldsManager = new FieldsManager();
-    private final CodeManager codeManager = new CodeManager();
-    private final Namespace namespace = Namespace.createRoot();
     private final ErrorList errors = new ErrorList();
     private final CodeReader codeInput;
     private LocalElementsScope localElements = new LocalElementsScope(fieldsManager);
+    private Namespace namespace = Namespace.createRoot();
     
     public CompilerState(CodeReader codeInput)
     {
@@ -30,9 +29,8 @@ public final class CompilerState
     
     
     public final FieldsManager getFields() { return fieldsManager; }
-    public final CodeManager getCode() { return codeManager; }
     public final LocalElementsScope getLocalElements() { return localElements; }
-    public final Namespace getRootNamespace() { return namespace; }
+    public final Namespace getNamespace() { return namespace; }
     
     public final LocalElementsScope pushLocalElements()
     {
@@ -41,17 +39,36 @@ public final class CompilerState
     
     public final LocalElementsScope popLocalElements()
     {
+        LocalElementsScope old = localElements;
         localElements = localElements.getParent();
         if(localElements == null)
             throw new IllegalStateException();
-        return localElements;
+        return old;
+    }
+    
+    public final Namespace pushNamespace(String name)
+    {
+        Namespace child;
+        if(!namespace.existsChild(name))
+            child = namespace.createChild(name);
+        else child = namespace.getChild(name);
+        return child;
+    }
+    
+    public final Namespace popNamespace()
+    {
+        Namespace old = namespace;
+        namespace = namespace.getParent();
+        if(namespace == null)
+            throw new IllegalStateException();
+        return old;
     }
     
     
-    public final Script compileScript()
+    public final Script compileScript(CodeManager code)
     {
         Script script = new Script();
-        codeManager.insertToScript(script);
+        code.insertToScript(script);
         fieldsManager.insertToScript(script);
         return script;
     }

@@ -11,6 +11,7 @@ import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.Macro;
 import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.TypedValue;
 
 /**
  *
@@ -39,9 +40,20 @@ public final class Namespace
     
     public final boolean isGlobal() { return parent == null; }
     
-    public final Namespace getChild(String name) { return children.get(name); }
+    public final Namespace getChild(String name)
+    {
+        Namespace child = children.get(name);
+        if(child == null && parent != null)
+            return parent.getChild(name);
+        return child;
+    }
     
-    public final boolean existsChild(String name) { return children.containsKey(name); }
+    public final boolean existsChild(String name)
+    {
+        if(children.containsKey(name))
+            return true;
+        return parent != null && parent.existsChild(name);
+    }
     
     public final NamespaceField getField(String name)
     {
@@ -106,33 +118,44 @@ public final class Namespace
     {
         GLOBALS.put(field.getName(), field);
     }
+    private static void addGlobalTypedValue(String name, ScriptToken token)
+    {
+        TypedValue value = TypedValue.from(token);
+        if(value != null)
+            addGlobal(NamespaceField.typedValue(name, value));
+    }
     static
     {
         // state //
-        addGlobal(NamespaceField.token(TypeId.STATE, "on", ScriptToken.ON));
-        addGlobal(NamespaceField.token(TypeId.STATE, "off", ScriptToken.OFF));
+        addGlobalTypedValue("on", ScriptToken.ON);
+        addGlobalTypedValue("off", ScriptToken.OFF);
+        
+        // tribe //
+        addGlobalTypedValue("TRIBE_BLUE", ScriptToken.BLUE);
+        addGlobalTypedValue("TRIBE_RED", ScriptToken.RED);
+        addGlobalTypedValue("TRIBE_YELLOW", ScriptToken.YELLOW);
+        addGlobalTypedValue("TRIBE_GREEN", ScriptToken.GREEN);
         
         // attack_target //
-        addGlobal(NamespaceField.token(TypeId.ATTACK_TARGET, "ATTACK_MARKER", ScriptToken.ATTACK_MARKER));
-        addGlobal(NamespaceField.token(TypeId.ATTACK_TARGET, "ATTACK_BUILDING", ScriptToken.ATTACK_BUILDING));
-        addGlobal(NamespaceField.token(TypeId.ATTACK_TARGET, "ATTACK_PERSON", ScriptToken.ATTACK_PERSON));
+        addGlobalTypedValue("ATTACK_MARKER", ScriptToken.ATTACK_MARKER);
+        addGlobalTypedValue("ATTACK_BUILDING", ScriptToken.ATTACK_BUILDING);
+        addGlobalTypedValue("ATTACK_PERSON", ScriptToken.ATTACK_PERSON);
         
         // attack_mode //
-        addGlobal(NamespaceField.token(TypeId.ATTACK_MODE, "ATTACK_NORMAL", ScriptToken.ATTACK_NORMAL));
-        addGlobal(NamespaceField.token(TypeId.ATTACK_MODE, "ATTACK_BY_BOAT", ScriptToken.ATTACK_BY_BOAT));
-        addGlobal(NamespaceField.token(TypeId.ATTACK_MODE, "ATTACK_BY_BALLON", ScriptToken.ATTACK_BY_BALLON));
+        addGlobalTypedValue("ATTACK_NORMAL", ScriptToken.ATTACK_NORMAL);
+        addGlobalTypedValue("ATTACK_BY_BOAT", ScriptToken.ATTACK_BY_BOAT);
+        addGlobalTypedValue("ATTACK_BY_BALLON", ScriptToken.ATTACK_BY_BALLON);
         
         // guard_mode //
-        addGlobal(NamespaceField.token(TypeId.GUARD_MODE, "GUARD_NORMAL", ScriptToken.GUARD_NORMAL));
-        addGlobal(NamespaceField.token(TypeId.GUARD_MODE, "GUARD_WITH_GHOSTS", ScriptToken.GUARD_WITH_GHOSTS));
+        addGlobalTypedValue("GUARD_NORMAL", ScriptToken.GUARD_NORMAL);
+        addGlobalTypedValue("GUARD_WITH_GHOSTS", ScriptToken.GUARD_WITH_GHOSTS);
         
         // count_wild_t //
-        addGlobal(NamespaceField.token(TypeId.COUNT_WILD_T, "COUNT_WILD", ScriptToken.COUNT_WILD));
+        addGlobalTypedValue("COUNT_WILD", ScriptToken.COUNT_WILD);
         
         // action //
-        for(ScriptToken token : ScriptToken.values())
-            if(token.isCommand())
-                addGlobal(NamespaceField.token(TypeId.ACTION, token.name(), token));
+        for(TypedValue action : TypedValue.from(TypeId.ACTION))
+            addGlobal(NamespaceField.typedValue(action.getToken().name(), action));
         
         // int //
         for(ScriptInternal internal : ScriptInternal.values())

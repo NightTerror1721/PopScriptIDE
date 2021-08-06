@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
-import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
+import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -21,7 +21,6 @@ public class LocalElementsScope
 {
     private final FieldsManager fieldsManager;
     private final HashMap<String, Element> elements = new HashMap<>();
-    private final HashMap<Int32, ConstantElement> literals = new HashMap<>();
     private final LinkedList<VariableElement> temporals = new LinkedList<>();
     private final LocalElementsScope parent;
     
@@ -45,14 +44,17 @@ public class LocalElementsScope
     
     public final boolean isRoot() { return parent == null; }
     
-    public final Element registerLiteral(Int32 value) throws CompilerException
+    public final void clear()
     {
-        if(literals.containsKey(value))
-            return literals.get(value);
+        if(!temporals.isEmpty())
+            throw new IllegalStateException();
         
-        ConstantElement elem = new ConstantElement(value);
-        literals.put(value, elem);
-        return elem;
+        int count = (int) elements.values().stream()
+                .filter(Element::isVariable)
+                .count();
+        fieldsManager.popVariables(count);
+        
+        elements.clear();
     }
     
     public final Element pushTemporal() throws CompilerException
@@ -85,7 +87,7 @@ public class LocalElementsScope
         if(!temporals.isEmpty())
             throw new IllegalStateException("Cannot create variable if temporals it's not empty.");
         
-        ConstantElement elem = (ConstantElement) registerLiteral(value);
+        ConstantElement elem = new ConstantElement(value);
         elements.put(identifier, elem);
         return elem;
     }
@@ -110,12 +112,12 @@ public class LocalElementsScope
         return elem;
     }
     
-    public final Element createToken(String identifier, ScriptToken token, TypeId type)
+    public final Element createTypedValue(String identifier, TypedValue value)
     {
         if(elements.containsKey(identifier))
             throw new IllegalStateException();
         
-        TokenElement elem = new TokenElement(token, type);
+        TypedValueElement elem = new TypedValueElement(value);
         elements.put(identifier, elem);
         return elem;
     }
@@ -143,24 +145,23 @@ public class LocalElementsScope
     
     public abstract class Element
     {
-        private final TypeId type;
+        private Element() {}
         
-        private Element(TypeId type)
-        {
-            this.type = Objects.requireNonNull(type);
-        }
-        
-        public final TypeId getType() { return type; }
+        public TypeId getType() { return TypeId.INT; }
         
         public VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException { throw new IllegalStateException(); }
         public Int32 getConstantValue() { throw new IllegalStateException(); }
         public ScriptInternal getInternal() { throw new IllegalStateException(); }
-        public ScriptToken getToken() { throw new IllegalStateException(); }
+        public TypedValue getTypedValue() { throw new IllegalStateException(); }
         
         public boolean isConstant() { return false; }
         public boolean isVariable() { return false; }
         public boolean isInternal() { return false; }
-        public boolean isToken() { return false; }
+        public boolean isTypedValue() { return false; }
+        
+        public boolean isVariableInitiated() { throw new IllegalStateException(); }
+        
+        public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     }
     
     private final class ConstantElement extends Element
@@ -169,7 +170,6 @@ public class LocalElementsScope
         
         private ConstantElement(Int32 value)
         {
-            super(TypeId.INT);
             this.value = Objects.requireNonNull(value);
         }
         
@@ -177,7 +177,7 @@ public class LocalElementsScope
         public final boolean isConstant() { return true; }
         
         @Override
-        public Int32 getConstantValue() { return value; }
+        public final Int32 getConstantValue() { return value; }
     }
     
     private final class VariableElement extends Element
@@ -186,7 +186,6 @@ public class LocalElementsScope
         
         private VariableElement(boolean isTemporal) throws CompilerException
         {
-            super(TypeId.INT);
             this.variableIndex = isTemporal ? fieldsManager.newVariable() : null;
         }
         
@@ -200,15 +199,17 @@ public class LocalElementsScope
         
         @Override
         public final boolean isVariable() { return true; }
+        
+        @Override
+        public final boolean isVariableInitiated() { return variableIndex != null; }
     }
     
     private final class InternalElement extends Element
     {
-        private final ScriptInternal internal;
+        private ScriptInternal internal;
         
         private InternalElement(ScriptInternal internal)
         {
-            super(TypeId.INT);
             this.internal = Objects.requireNonNull(internal);
         }
         
@@ -219,22 +220,22 @@ public class LocalElementsScope
         public final ScriptInternal getInternal() { return internal; }
     }
     
-    private final class TokenElement extends Element
+    private final class TypedValueElement extends Element
     {
-        private final ScriptToken token;
+        private TypedValue value;
         
-        private TokenElement(ScriptToken token, TypeId type)
+        private TypedValueElement(TypedValue value)
         {
-            super(type);
-            this.token = Objects.requireNonNull(token);
-            if(type.isFieldAssignable())
-                throw new IllegalStateException();
+            this.value = Objects.requireNonNull(value);
         }
         
         @Override
-        public final ScriptToken getToken() { return token; }
+        public final TypeId getType() { return value.getType(); }
         
         @Override
-        public final boolean isToken() { return true; }
+        public final TypedValue getTypedValue() { return value; }
+        
+        @Override
+        public final boolean isTypedValue() { return true; }
     }
 }

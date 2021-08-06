@@ -7,28 +7,28 @@ package kp.ps.script.namespace;
 
 import java.util.Objects;
 import kp.ps.script.compiler.TypeId;
-import kp.ps.utils.ints.Int32;
+import kp.ps.script.compiler.TypedValue;
 
 /**
  *
  * @author Marc
  */
-final class ConstantNamespaceField extends NamespaceField
+final class TypedValueNamespaceField extends NamespaceField
 {
-    private final Int32 value;
+    private TypedValue value;
     
-    ConstantNamespaceField(String name, Int32 value)
+    TypedValueNamespaceField(String name, TypedValue value)
     {
         super(name);
         this.value = Objects.requireNonNull(value);
     }
     
     @Override
-    public NamespaceFieldType getFieldType() { return NamespaceFieldType.CONSTANT; }
+    public final NamespaceFieldType getFieldType() { return NamespaceFieldType.TOKEN; }
     
     @Override
-    public final TypeId getType() { return TypeId.INT; }
-
+    public final TypeId getType() { return value.getType(); }
+    
     @Override
-    public final Int32 getValue() { return value; }
+    public final TypedValue getTypedValue() { return value; }
 }
