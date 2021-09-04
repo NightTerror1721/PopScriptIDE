@@ -11,7 +11,9 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementValue;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -34,15 +36,51 @@ public class AndOrCompilation implements StatementTask
     @Override
     public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
     {
+        if(retloc.isInvalid())
+            throw new CompilerException("Operator %s must store result in any valid location.", (andMode ? "and" : "or"));
         
+        ConditionalState resultState = StatementCompiler.compileIfCommand(state, code, this);
+        if(resultState != ConditionalState.UNKNOWN)
+        {
+            if(resultState == ConditionalState.TRUE)
+                StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
+            else StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
+        }
+        else
+        {
+            code.insertTokenCode(ScriptToken.BEGIN);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
+            code.insertTokenCode(ScriptToken.END);
+            code.insertTokenCode(ScriptToken.ELSE);
+            code.insertTokenCode(ScriptToken.BEGIN);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
+            code.insertTokenCode(ScriptToken.END);
+        }
+
+        return retloc;
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
+        StatementValue left = leftOperand.constCompile();
+        StatementValue right = rightOperand.constCompile();
+        
+        if(!left.isConstant() || !right.isConstant())
+            throw new IllegalStateException();
+        
+        Int32 result;
         if(andMode)
-            return leftOperand.constCompile() != 0 && rightOperand.constCompile() != 0 ? 1 : 0;
-        return leftOperand.constCompile() != 0 || rightOperand.constCompile() != 0 ? 1 : 0;
+            result = left.getConstantValue().toInt() != 0 && right.getConstantValue().toInt() != 0 ? Int32.ONE : Int32.ZERO;
+        else result = left.getConstantValue().toInt() != 0 || right.getConstantValue().toInt() != 0 ? Int32.ONE : Int32.ZERO;
+        
+        return StatementValue.of(result);
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in internal environment.", (andMode ? "&&" : "||"));
     }
 
     @Override

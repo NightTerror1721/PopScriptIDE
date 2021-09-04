@@ -5,20 +5,17 @@
  */
 package kp.ps.script.compiler.statement.utils;
 
-import kp.ps.script.ScriptToken;
-import kp.ps.script.compiler.CodeManager;
-import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.StatementTask;
-import kp.ps.script.compiler.statement.StatementTask.ConditionalState;
+import kp.ps.script.compiler.statement.StatementValue;
+import kp.ps.utils.ints.Int32;
 
 /**
  *
  * @author Marc
  */
-public final class StatementSupport
+public final class StatementTaskUtils
 {
-    private StatementSupport() {}
+    private StatementTaskUtils() {}
     
     public static final StatementTask assignation(StatementTask dst, StatementTask src)
     {
@@ -27,22 +24,22 @@ public final class StatementSupport
     
     public static final StatementTask sum(StatementTask left, StatementTask right)
     {
-        return new SumSubCompilation(left, right, true);
+        return new SumSubCompilation(left, right, true, false);
     }
     
     public static final StatementTask sub(StatementTask left, StatementTask right)
     {
-        return new SumSubCompilation(left, right, false);
+        return new SumSubCompilation(left, right, false, false);
     }
     
     public static final StatementTask mul(StatementTask left, StatementTask right)
     {
-        return new MulDivCompilation(left, right, true);
+        return new MulDivCompilation(left, right, true, false);
     }
     
     public static final StatementTask div(StatementTask left, StatementTask right)
     {
-        return new MulDivCompilation(left, right, false);
+        return new MulDivCompilation(left, right, false, false);
     }
     
     public static final StatementTask inc(StatementTask operand, boolean isPrefix)
@@ -95,24 +92,38 @@ public final class StatementSupport
         return new ElvisOperatorCompilation(condition, ifIsTrue, ifIsFalse);
     }
     
-    
-    
-    
-    
-    
-    public static final ConditionalState compileIfCommand(CompilerState state, CodeManager code, StatementTask condition) throws CompilerException
+    public static final StatementTask and(StatementTask left, StatementTask right)
     {
-        CodeManager prev = new CodeManager();
-        CodeManager cond = new CodeManager();
-        
-        ConditionalState result = condition.conditionalCompile(state, prev, cond);
-        if(result != ConditionalState.UNKNOWN)
-            return result;
-        
-        code.insertCode(prev);
-        code.insertTokenCode(ScriptToken.IF);
-        code.insertCode(cond);
-        
-        return result;
+        return new AndOrCompilation(left, right, true);
+    }
+    
+    public static final StatementTask or(StatementTask left, StatementTask right)
+    {
+        return new AndOrCompilation(left, right, false);
+    }
+    
+    public static final StatementTask assignationSum(StatementTask left, StatementTask right)
+    {
+        return new SumSubCompilation(left, right, true, true);
+    }
+    
+    public static final StatementTask assignationSub(StatementTask left, StatementTask right)
+    {
+        return new SumSubCompilation(left, right, false, true);
+    }
+    
+    public static final StatementTask assignationMul(StatementTask left, StatementTask right)
+    {
+        return new MulDivCompilation(left, right, true, true);
+    }
+    
+    public static final StatementTask assignationDiv(StatementTask left, StatementTask right)
+    {
+        return new MulDivCompilation(left, right, false, true);
+    }
+    
+    public static final StatementTask negative(StatementTask operand)
+    {
+        return mul(operand, StatementValue.of(Int32.MINUSONE));
     }
 }

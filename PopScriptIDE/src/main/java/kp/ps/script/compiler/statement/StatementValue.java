@@ -77,9 +77,26 @@ public abstract class StatementValue implements StatementTask
     public abstract TypeId getType();
     
     public abstract VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException;
-    public abstract Int32 getConstantValue();
-    public abstract ScriptInternal getInternal();
-    public abstract TypedValue getTypedValue();
+    public abstract Int32 getConstantValue() throws CompilerException;
+    public abstract ScriptInternal getInternal() throws CompilerException;
+    public abstract TypedValue getTypedValue() throws CompilerException;
+    
+    public boolean isInitiated() { return true; }
+
+    public void initiateConstant(Int32 value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a int value with %s type.", getType());
+    }
+
+    public void initiateInternal(ScriptInternal value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a int value with %s type.", getType());
+    }
+
+    public void initiateTypedValue(TypedValue value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a %s value with %s type.", value.getType(), getType());
+    }
     
     public final boolean isConstant() { return getKind() == Kind.CONSTANT; }
     public final boolean isVariable() { return getKind() == Kind.VARIABLE; }
@@ -105,26 +122,30 @@ public abstract class StatementValue implements StatementTask
             if(getKind() != val.getKind())
                 return false;
 
-            switch(getKind())
+            try
             {
-                case CONSTANT:
-                    return getConstantValue().equals(val.getConstantValue());
-                case VARIABLE: {
-                    VariableIndex vleft = getVariableIndexWithoutTemporalCreation();
-                    if(vleft == null)
-                        return false;
-                    VariableIndex vright = val.getVariableIndexWithoutTemporalCreation();
-                    if(vright == null)
-                        return false;
-                    return vleft.equals(vright);
+                switch(getKind())
+                {
+                    case CONSTANT:
+                        return getConstantValue().equals(val.getConstantValue());
+                    case VARIABLE: {
+                        VariableIndex vleft = getVariableIndexWithoutTemporalCreation();
+                        if(vleft == null)
+                            return false;
+                        VariableIndex vright = val.getVariableIndexWithoutTemporalCreation();
+                        if(vright == null)
+                            return false;
+                        return vleft.equals(vright);
+                    }
+                    case INTERNAL:
+                        return getInternal() == val.getInternal();
+                    case TYPED_VALUE:
+                        return getTypedValue().equals(val.getTypedValue());
+                    default:
+                        throw new IllegalStateException();
                 }
-                case INTERNAL:
-                    return getInternal() == val.getInternal();
-                case TYPED_VALUE:
-                    return getTypedValue().equals(val.getTypedValue());
-                default:
-                    throw new IllegalStateException();
             }
+            catch(CompilerException ex) { return false; }
         }
         return false;
     }
@@ -132,39 +153,23 @@ public abstract class StatementValue implements StatementTask
     @Override
     public final MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
     {
-        /*if(!retloc.isInvalid())
-            throw new IllegalStateException();
-        
-        switch(getKind())
-        {
-            case VARIABLE:
-                state.getCode().insertFieldCode(state.getFields().getVariableFieldLocation(getVariableIndex(true)));
-                break;
-                
-            case CONSTANT:
-                state.getCode().insertFieldCode(state.getFields().registerConstant(getConstantValue()));
-                break;
-                
-            case INTERNAL:
-                state.getCode().insertFieldCode(state.getFields().registerInternal(getInternal()));
-                break;
-                
-            case TYPED_VALUE:
-                throw new CompilerException("Cannot use token values in statement environment.");
-                
-            default:
-                throw new IllegalStateException();
-        }*/
-        
         return toMemoryAddress();
     }
     
     @Override
-    public final int constCompile() throws CompilerException
+    public final StatementValue constCompile() throws CompilerException
     {
         if(!isConstant())
             throw new CompilerException("Cannot use non constant elements in const environment");
-        return getConstantValue().toInt();
+        return this;
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        if(!isInternal() && !isTypedValue())
+            throw new CompilerException("Cannot use non internal elements in internal environment");
+        return this;
     }
     
     @Override
@@ -268,7 +273,7 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final Int32 getConstantValue()
+        public final Int32 getConstantValue() throws CompilerException
         {
             if(element.isConstant())
                 return element.getConstantValue();
@@ -276,7 +281,7 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final ScriptInternal getInternal()
+        public final ScriptInternal getInternal() throws CompilerException
         {
             if(element.isInternal())
                 return element.getInternal();
@@ -284,11 +289,32 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final TypedValue getTypedValue()
+        public final TypedValue getTypedValue() throws CompilerException
         {
             if(element.isTypedValue())
                 return element.getTypedValue();
             throw new IllegalStateException();
+        }
+        
+        @Override
+        public final boolean isInitiated() { return element.isConstInitiated(); }
+
+        @Override
+        public final void initiateConstant(Int32 value) throws CompilerException
+        {
+            element.initiateConstConstantValue(value);
+        }
+
+        @Override
+        public final void initiateInternal(ScriptInternal value) throws CompilerException
+        {
+            element.initiateConstInternalValue(value);
+        }
+
+        @Override
+        public final void initiateTypedValue(TypedValue value) throws CompilerException
+        {
+            element.initiateConstTypedValueValue(value);
         }
     }
     
@@ -320,7 +346,7 @@ public abstract class StatementValue implements StatementTask
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) { throw new IllegalStateException(); }
 
         @Override
-        public final Int32 getConstantValue()
+        public final Int32 getConstantValue() throws CompilerException
         {
             if(field.isConstant())
                 return field.getValue();
@@ -328,7 +354,7 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final ScriptInternal getInternal()
+        public final ScriptInternal getInternal() throws CompilerException
         {
             if(field.isInternal())
                 return field.getInternal();
@@ -336,11 +362,32 @@ public abstract class StatementValue implements StatementTask
         }
 
         @Override
-        public final TypedValue getTypedValue()
+        public final TypedValue getTypedValue() throws CompilerException
         {
             if(field.isTypedValue())
                 return field.getTypedValue();
             throw new IllegalStateException();
+        }
+        
+        @Override
+        public final boolean isInitiated() { return field.isInitiated(); }
+
+        @Override
+        public final void initiateConstant(Int32 value) throws CompilerException
+        {
+            field.initiateConstant(value);
+        }
+
+        @Override
+        public final void initiateInternal(ScriptInternal value) throws CompilerException
+        {
+            field.initiateInternal(value);
+        }
+
+        @Override
+        public final void initiateTypedValue(TypedValue value) throws CompilerException
+        {
+            field.initiateTypedValue(value);
         }
     }
 }

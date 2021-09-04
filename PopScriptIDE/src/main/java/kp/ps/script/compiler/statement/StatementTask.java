@@ -17,7 +17,8 @@ import kp.ps.utils.ints.Int32;
 public interface StatementTask
 {
     MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException;
-    int constCompile() throws CompilerException;
+    StatementValue constCompile() throws CompilerException;
+    StatementValue internalCompile() throws CompilerException;
     ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException;
     
     default MemoryAddress normalCompile(CompilerState state, CodeManager code)  throws CompilerException

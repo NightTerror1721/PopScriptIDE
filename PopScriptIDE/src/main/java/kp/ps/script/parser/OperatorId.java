@@ -111,7 +111,6 @@ public enum OperatorId
     {
         switch(this)
         {
-            case NAMESPACE_RESOLUTION:
             case MULTIPPLY:
             case DIVIDE:
             case ADD:

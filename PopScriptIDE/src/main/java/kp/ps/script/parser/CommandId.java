@@ -17,6 +17,7 @@ public enum CommandId
     DO("do"),
     VAR("var"),
     CONST("const"),
+    INTERNAL("internal"),
     MACRO("macro"),
     IMPORT("import"),
     NAMESPACE("namespace"),

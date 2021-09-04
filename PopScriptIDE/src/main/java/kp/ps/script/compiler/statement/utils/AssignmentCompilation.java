@@ -12,6 +12,7 @@ import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementValue;
 
 /**
  *
@@ -55,9 +56,34 @@ public class AssignmentCompilation implements StatementTask
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        throw new IllegalStateException();
+        StatementValue left = target.constCompile();
+        StatementValue right = value.constCompile();
+        
+        if(!left.isConstant() || !right.isConstant())
+            throw new IllegalStateException();
+        
+        left.initiateConstant(right.getConstantValue());
+        return left;
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        StatementValue left = target.internalCompile();
+        StatementValue right = value.internalCompile();
+        
+        if(left.getType() != right.getType())
+            throw new CompilerException("Cannot assign %s type to %s.", left.getType(), right.getType());
+        
+        if(left.isInternal())
+            left.initiateInternal(right.getInternal());
+        else if(left.isTypedValue())
+            left.initiateTypedValue(right.getTypedValue());
+        else throw new IllegalStateException();
+        
+        return left;
     }
 
     @Override

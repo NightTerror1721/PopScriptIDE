@@ -6,23 +6,13 @@
 package kp.ps.script.compiler.statement;
 
 import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
-import kp.ps.script.compiler.LocalElementsScope.Element;
-import kp.ps.script.compiler.StoringLocation;
-import kp.ps.script.instruction.Instruction;
-import kp.ps.script.namespace.Namespace;
-import kp.ps.script.namespace.NamespaceField;
-import kp.ps.script.parser.Assignment;
-import kp.ps.script.parser.Fragment;
-import kp.ps.script.parser.FunctionCall;
-import kp.ps.script.parser.Literal;
-import kp.ps.script.parser.NamespaceResolver;
+import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
 import kp.ps.script.parser.Operation;
 import kp.ps.script.parser.Operator;
-import kp.ps.script.parser.Scope;
 import kp.ps.script.parser.Statement;
-import kp.ps.utils.ints.Int32;
 
 /**
  *
@@ -32,806 +22,148 @@ public final class StatementCompiler
 {
     private StatementCompiler() {}
     
-    public static final void compile(CompilerState state, Statement statement, StoringLocation retloc) throws CompilerException
-    {
-        switch(statement.getFragmentType())
-        {
-            default: throw new IllegalStateException();
-            case IDENTIFIER:
-                if(!retloc.isEmpty())
-                    throw new CompilerException("Cannot create statement with single element like '" + statement + "'");
-                compileIdentifier(state, statement);
-                break;
-            case NAMESPACE_RESOLVER:
-                if(!retloc.isEmpty())
-                    throw new CompilerException("Cannot create statement with single element like '" + statement + "'");
-                compileNamespaceResolver(state, statement);
-                break;
-            case LITERAL:
-                if(!retloc.isEmpty())
-                    throw new CompilerException("Cannot create statement with single element like '" + statement + "'");
-                compileLiteral(state, statement);
-                break;
-            case OPERATION:
-                compileOperation(state, statement, retloc);
-                break;
-        }
-    }
-    
-    public static final void compileScope(CompilerState state, Fragment statement) throws CompilerException
-    {
-        if(statement.isScope())
-        {
-            Scope sscope = (Scope) statement;
-            for(Instruction inst : sscope)
-                inst.compile(state);
-        }
-        else if(statement.isStatement())
-            compile(state, (Statement) statement, null);
-        throw new IllegalStateException();
-    }
-    
-    private static void compileNamespaceField(CompilerState state, Namespace namespace, Statement identifier) throws CompilerException
-    {
-        String name = identifier.toString();
-        NamespaceField field = namespace.getField(name);
-        compileNamespaceField(state, field);
-    }
-    private static void compileNamespaceField(CompilerState state, NamespaceField field) throws CompilerException
-    {
-        if(field.isToken())
-            state.getCode().insertTokenCode(field.getToken());
-        else if(field.isConstant())
-            state.getCode().insertFieldCode(state.getFields().registerConstant(field.getValue()));
-        else //field.isInternal()
-            state.getCode().insertFieldCode(state.getFields().registerInternal(field.getInternal()));
-    }
-    
-    private static void compileLocalElement(CompilerState state, Statement identifier) throws CompilerException
-    {
-        String name = identifier.toString();
-        Element elem = state.getLocalElements().get(name);
-        compileLocalElement(state, elem);
-    }
-    private static void compileLocalElement(CompilerState state, Element elem) throws CompilerException
-    {
-        if(elem.isToken())
-            state.getCode().insertTokenCode(elem.getToken());
-        else
-            state.getCode().insertFieldCode(elem.getFieldLocation());
-    }
-    
-    private static void compileIdentifier(CompilerState state, Statement identifier) throws CompilerException
+    public static final StatementValue resolveIdentifier(CompilerState state, Statement identifier) throws CompilerException
     {
         if(!identifier.isIdentifier())
             throw new CompilerException("Expected valid identifier, but found '" + identifier + "'.");
         
-        String name = identifier.toString();
-        if(state.getLocalElements().exists(name))
-        {
-            compileLocalElement(state, identifier);
-        }
-        else if(state.getRootNamespace().existsField(name))
-        {
-            compileNamespaceField(state, state.getRootNamespace(), identifier);
-        }
-        else throw new CompilerException("'" + name + "' identifier not found.");
+        return StatementValue.decode(state, (Statement) identifier);
     }
     
-    private static void compileNamespaceResolver(CompilerState state, Statement statement) throws CompilerException
+    public static final StatementTask.ConditionalState compileIfCommand(CompilerState state, CodeManager code, StatementTask condition) throws CompilerException
     {
-        if(!statement.isNamespaceResolverOperation())
-            throw new IllegalStateException();
+        CodeManager prev = new CodeManager();
+        CodeManager cond = new CodeManager();
         
-        NamespaceResolver resolver = (NamespaceResolver) statement;
-        Namespace namespace = resolver.findNamespace(state.getRootNamespace());
-        compileNamespaceField(state, namespace, resolver.getLastIdentifier());
-    }
-    
-    public static void compileIdentifierOrNamespaceResolver(CompilerState state, Statement statement) throws CompilerException
-    {
-        if(statement.isIdentifier())
-            compileIdentifier(state, statement);
-        else if(statement.isNamespaceResolverOperation())
-            compileNamespaceResolver(state, statement);
-        throw new CompilerException("Expected valid identifier or namespace resolver, but found '" + statement + "'");
-    }
-    
-    /*private static DataType compileLoadArgument(NamespaceScope scope, OpcodeList opcodes, NamespaceIdentifier arg) throws CompilerError
-    {
-        if(!arg.isArgument())
-            throw new IllegalStateException();
-        LocalVariable var = scope.argumentToLocal((Argument) arg);
-        opcodes.append(Opcodes.argToVar(var.getIndex(), arg.getIndex()));
-        return var.getType();
-    }*/
-    
-    public static final void compileLiteral(CompilerState state, Statement literal) throws CompilerException
-    {
-        Literal lit = (Literal) literal;
-        state.getCode().insertFieldCode(state.getFields().registerConstant(lit.getValue()));
-    }
-    
-    public static final void compileOperation(CompilerState state, Statement operation, StoringLocation retloc) throws CompilerException
-    {
-        if(operation.isOperation())
-        {
-            Operation op = (Operation) operation;
-            if(op.isUnary())
-                compileUnary(state, op, retloc);
-            else if(op.isBinary())
-                compileBinary(state, op, retloc);
-            else if(op.isTernary())
-                compileTernaryCondition(state, op, retloc);
-            else throw new IllegalStateException();
-        }
-        else if(operation.isAssignmentOperation())
-        {
-            compileAssignment(state, (Assignment) operation, retloc);
-        }
-        else if(operation.isFunctionCallOperation())
-        {
-            compileCall(state, (FunctionCall) operation);
-        }
-        else if(operation.isNamespaceResolverOperation())
-        {
-            compileNamespaceResolver(state, operation);
-        }
-        else throw new IllegalStateException();
-    }
-    
-    private static boolean isVariableOrInternal(CompilerState state, Statement statement) throws CompilerException
-    {
-        if(statement.isIdentifier())
-        {
-            String name = statement.toString();
-            if(!state.getLocalElements().exists(name))
-            {
-                Element elem = state.getLocalElements().get(name);
-                if(elem.isVariable() || elem.isInternal())
-                    return true;
-            }
-            if(state.getRootNamespace().existsField(name))
-            {
-                NamespaceField field = state.getRootNamespace().getField(name);
-                if(field.isInternal())
-                    return true;
-            }
-        }
-        else if(statement.isNamespaceResolverOperation())
-        {
-            NamespaceResolver resolver = (NamespaceResolver) statement;
-            Namespace namespace = resolver.findNamespace(state.getRootNamespace());
-            String name = resolver.getLastIdentifier().getIdentifier();
-            if(namespace.existsField(name))
-            {
-                NamespaceField field = namespace.getField(name);
-                if(field.isInternal())
-                    return true;
-            }
-        }
-        return false;
-    }
-    
-    private static void compileReturnLocation(CompilerState state, StoringLocation retloc) throws CompilerException
-    {
-        if(retloc.isEmpty())
-            return;
-        if(retloc.isElement())
-            compileLocalElement(state, retloc.getLocalElement());
-        else if(retloc.isNamespaceField())
-            compileNamespaceField(state, retloc.getNamespaceField());
-        else throw new IllegalStateException();
-    }
-    
-    private static void compileIncDecOperators(CompilerState state, Statement operand, StoringLocation retloc, boolean isInc, boolean isPrefix) 
-            throws CompilerException
-    {
-        if(!isVariableOrInternal(state, operand))
-            throw new CompilerException("Expected valid variable in increment/decrement operators.");
+        StatementTask.ConditionalState result = condition.conditionalCompile(state, prev, cond);
+        if(result != StatementTask.ConditionalState.UNKNOWN)
+            return result;
         
-        if(isPrefix)
-        {
-            state.getCode().insertTokenCode(isInc ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
-            compileIdentifierOrNamespaceResolver(state, operand);
-            state.getCode().insertFieldCode(state.getFields().registerConstant(Int32.ONE));
-            if(!retloc.isEmpty())
-            {
-                state.getCode().insertTokenCode(ScriptToken.SET);
-                compileReturnLocation(state, retloc);
-                compileIdentifierOrNamespaceResolver(state, operand);
-            }
-        }
-        else
-        {
-            if(!retloc.isEmpty())
-            {
-                state.getCode().insertTokenCode(ScriptToken.SET);
-                compileReturnLocation(state, retloc);
-                compileIdentifierOrNamespaceResolver(state, operand);
-            }
-            state.getCode().insertTokenCode(isInc ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
-            compileIdentifierOrNamespaceResolver(state, operand);
-            state.getCode().insertFieldCode(state.getFields().registerConstant(Int32.ONE));
-        }
+        code.insertCode(prev);
+        code.insertTokenCode(ScriptToken.IF);
+        code.insertCode(cond);
+        
+        return result;
     }
     
-    private static void compileUnary(CompilerState state, Operation operation, StoringLocation retloc) throws CompilerException
+    public static final StatementTask toTask(CompilerState state, Statement statement) throws CompilerException
+    {
+        switch(statement.getFragmentType())
+        {
+            case IDENTIFIER:
+            case LITERAL:
+            case NAMESPACE_RESOLVER:
+                return StatementValue.decode(state, statement);
+                
+            case OPERATION: {
+                Operation operation = (Operation) statement;
+                if(operation.isUnary())
+                    return toTaskUnaryOperator(state, operation);
+                else if(operation.isBinary())
+                    return toTaskBinaryOperator(state, operation);
+                else if(operation.isTernary())
+                {
+                    return StatementTaskUtils.elvis(
+                            toTask(state, operation.getTernaryCondition()),
+                            toTask(state, operation.getTernaryTrueAction()),
+                            toTask(state, operation.getTernaryFalseAction())
+                    );
+                }
+            } break;
+        }
+        
+        throw new CompilerException("Unexpected token '%s'", statement);
+    }
+    
+    private static StatementTask toTaskUnaryOperator(CompilerState state, Operation operation) throws CompilerException
     {
         Operator op = operation.getOperator();
-        Statement operand = operation.getUnaryOperand();
-        switch (op.getOperatorId())
+        StatementTask operand = toTask(state, operation.getUnaryOperand());
+        
+        switch(op.getOperatorId())
         {
-            case PREFIX_INCREASE:
-                compileIncDecOperators(state, operand, retloc, true, true);
-                break;
-            case PREFIX_DECREASE:
-                compileIncDecOperators(state, operand, retloc, false, true);
-                break;
             case SUFFIX_INCREASE:
-                compileIncDecOperators(state, operand, retloc, true, false);
-                break;
+                return StatementTaskUtils.inc(operand, false);
+                
             case SUFFIX_DECREASE:
-                compileIncDecOperators(state, operand, retloc, false, false);
-                break;
-            case LOGICAL_NOT: {
+                return StatementTaskUtils.dec(operand, false);
                 
-            } break;
+            case PREFIX_INCREASE:
+                return StatementTaskUtils.inc(operand, true);
                 
-        }
-        
-        if(operator == Operator.ADDRESS_OF)
-        {
-            if(!op.isIdentifier())
-                throw new CompilerError("Expected valid local variable to \"&\" operator.");
-            NamespaceIdentifier id = scope.getIdentifier(op.toString());
-            if(!id.isLocalVariable())
-                throw new CompilerError("Expected valid local variable to \"&\" operator.");
-            opcodes.append(Opcodes.refLocal(id.getIndex(), id.getType().getTypeId()));
-            return DataType.ANY;
-        }
-        if(operator == Operator.INDIRECTION)
-        {
-            NamespaceIdentifier id;
-            if(op.isIdentifier() && (id = scope.getIdentifier(op.toString())).isLibraryElement())
-            {
-                opcodes.append(Opcodes.libeRefGet(id.getIndex()));
-                return DataType.ANY;
-            }
-            else
-            {
-                DataType type = compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.REF_GET);
-                return type;
-            }
-        }
-        final DataType type;
-        switch(operator.getSymbol())
-        {
-            case SUFIX_INCREMENT:
-                return store(scope, opcodes, op, (s, o) -> { compile(scope, opcodes, op, false); o.append(Opcodes.INC, Opcodes.DUP); return null; });
-            case SUFIX_DECREMENT:
-                return store(scope, opcodes, op, (s, o) -> { compile(scope, opcodes, op, false); o.append(Opcodes.DEC, Opcodes.DUP); return null; });
-            case PREFIX_INCREMENT:
-                return store(scope, opcodes, op, (s, o) -> { compile(scope, opcodes, op, false); o.append(Opcodes.DUP, Opcodes.INC); return null; });
-            case PREFIX_DECREMENT:
-                return store(scope, opcodes, op, (s, o) -> { compile(scope, opcodes, op, false); o.append(Opcodes.DUP, Opcodes.DEC); return null; });
-            case UNARY_PLUS:
-                type = compile(scope, opcodes, op, false);
-                return type;
+            case PREFIX_DECREASE:
+                return StatementTaskUtils.dec(operand, true);
+                
+            case LOGICAL_NOT:
+                return StatementTaskUtils.not(operand);
+                
             case UNARY_MINUS:
-                type = compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.NEG);
-                return type;
-            case NOT:
-                type = compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.INV);
-                return type;
-            case BITWISE_NOT:
-                type = compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.BW_NOT);
-                return type;
-            case CAST_INT:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.CAST_INT);
-                return DataType.INTEGER;
-            case CAST_FLOAT:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.CAST_FLOAT);
-                return DataType.FLOAT;
-            case CAST_STRING:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.CAST_STRING);
-                return DataType.STRING;
-            case CAST_ARRAY:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.CAST_ARRAY);
-                return DataType.ARRAY;
-            case CAST_OBJECT:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.CAST_OBJECT);
-                return DataType.OBJECT;
-            case LENGTH:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.LEN);
-                return DataType.INTEGER;
-            case ISDEF:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.ISDEF);
-                return DataType.INTEGER;
-            case ISUNDEF:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.ISUNDEF);
-                return DataType.INTEGER;
-            case TYPEID:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.TYPEID);
-                return DataType.INTEGER;
-            case ITERATOR:
-                compile(scope, opcodes, op, false);
-                opcodes.append(Opcodes.ITERATOR);
-                return DataType.ANY;
-            default: throw new IllegalStateException();
+                return StatementTaskUtils.negative(operand);
         }
-    }
-    
-    private static DataType compileBinary(NamespaceScope scope, OpcodeList opcodes, Operator operator, Statement left, Statement right) throws CompilerError
-    {
-        if(operator == Operator.LOGICAL_AND || operator == Operator.LOGICAL_OR)
-        {
-            OpcodeLocation ifJump = compileCondition(scope, opcodes, left);
-            if(operator == Operator.LOGICAL_AND)
-            {
-                OpcodeLocation gotoJumo = opcodes.append(Opcodes.goTo());
-                opcodes.setJumpOpcodeLocationToBottom(ifJump);
-                ifJump = compileCondition(scope, opcodes, right);
-                compileLiteral(scope, opcodes, Literal.FALSE);
-                OpcodeLocation lastGoto = opcodes.append(Opcodes.goTo());
-                opcodes.setJumpOpcodeLocationTarget(gotoJumo, ifJump.next());
-                compileLiteral(scope, opcodes, Literal.TRUE);
-                opcodes.setJumpOpcodeLocationToBottom(lastGoto);
-            }
-            else
-            {
-                OpcodeLocation rightJump = compileCondition(scope, opcodes, right);
-                compileLiteral(scope, opcodes, Literal.FALSE);
-                OpcodeLocation lastGoto = opcodes.append(Opcodes.goTo());
-                opcodes.setJumpOpcodeLocationToBottom(ifJump);
-                opcodes.setJumpOpcodeLocationToBottom(rightJump);
-                compileLiteral(scope, opcodes, Literal.TRUE);
-                opcodes.setJumpOpcodeLocationToBottom(lastGoto);
-                
-            }
-            scope.getRuntimeStack().pop();
-            return DataType.INTEGER;
-        }
-        DataType tleft = compile(scope, opcodes, left, false);
-        DataType tright = compile(scope, opcodes, right, false);
-        if(operator == Operator.CONCAT)
-        {
-            opcodes.append(Opcodes.CONCAT);
-            return DataType.STRING;
-        }
-        DataType type = binaryDataCheck(scope, opcodes, tleft, tright);
         
-        switch(operator.getSymbol())
+        throw new IllegalStateException();
+    }
+    
+    private static StatementTask toTaskBinaryOperator(CompilerState state, Operation operation) throws CompilerException
+    {
+        Operator op = operation.getOperator();
+        StatementTask left = toTask(state, operation.getBinaryLeftOperand());
+        StatementTask right = toTask(state, operation.getBinaryRightOperand());
+        
+        switch(op.getOperatorId())
         {
-            case MULTIPLICATION:
-                opcodes.append(Opcodes.MUL);
-                return type;
-            case DIVISION:
-                opcodes.append(Opcodes.DIV);
-                return type;
-            case REMAINDER:
-                opcodes.append(Opcodes.REM);
-                return type;
-            case ADDITION:
-                opcodes.append(Opcodes.ADD);
-                return type;
-            case SUBTRACTION:
-                opcodes.append(Opcodes.SUB);
-                return type;
-            case BITWISE_LEFT_SHIFT:
-                opcodes.append(Opcodes.BW_SFH_L);
-                return type;
-            case BITWISE_RIGHT_SHIFT:
-                opcodes.append(Opcodes.BW_SFH_R);
-                return type;
-            case GREATER_THAN:
-                opcodes.append(Opcodes.GR);
-                return type;
-            case SMALLER_THAN:
-                opcodes.append(Opcodes.SM);
-                return type;
-            case GREATER_EQUALS_THAN:
-                opcodes.append(Opcodes.GREQ);
-                return type;
-            case SMALLER_EQUALS_THAN:
-                opcodes.append(Opcodes.SMEQ);
-                return type;
+            case MULTIPPLY:
+                return StatementTaskUtils.mul(left, right);
+                
+            case DIVIDE:
+                return StatementTaskUtils.div(left, right);
+                
+            case ADD:
+                return StatementTaskUtils.sum(left, right);
+                
+            case SUBTRACT:
+                return StatementTaskUtils.sub(left, right);
+                
+            case GREATER:
+                return StatementTaskUtils.greater(left, right);
+                
+            case LESS:
+                return StatementTaskUtils.less(left, right);
+                
+            case GREATER_EQUALS:
+                return StatementTaskUtils.greaterOrEquals(left, right);
+                
+            case LESS_EQUALS:
+                return StatementTaskUtils.lessOrEquals(left, right);
+                
             case EQUALS:
-                opcodes.append(Opcodes.EQ);
-                return type;
-            case NOT_EQUALS:
-                opcodes.append(Opcodes.NEQ);
-                return type;
-            case TYPED_EQUALS:
-                opcodes.append(Opcodes.TEQ);
-                return type;
-            case TYPED_NOT_EQUALS:
-                opcodes.append(Opcodes.TNEQ);
-                return type;
-            case BITWISE_AND:
-                opcodes.append(Opcodes.BW_AND);
-                return type;
-            case BITWISE_XOR:
-                opcodes.append(Opcodes.BW_XOR);
-                return type;
-            case BITWISE_OR:
-                opcodes.append(Opcodes.BW_OR);
-                return type;
-            default: throw new IllegalStateException();
+                return StatementTaskUtils.equals(left, right);
+                
+            case DIFFERENT:
+                return StatementTaskUtils.notEquals(left, right);
+                
+            case AND:
+                return StatementTaskUtils.and(left, right);
+                
+            case OR:
+                return StatementTaskUtils.or(left, right);
+                
+            case ASSIGNATION:
+                return StatementTaskUtils.assignation(left, right);
+                
+            case ASSIGNATION_ADD:
+                return StatementTaskUtils.assignationSum(left, right);
+                
+            case ASSIGNATION_SUBTRACT:
+                return StatementTaskUtils.assignationSub(left, right);
+                
+            case ASSIGNATION_MULTIPLY:
+                return StatementTaskUtils.assignationMul(left, right);
+                
+            case ASSIGNATION_DIVIDE:
+                return StatementTaskUtils.assignationDiv(left, right);
         }
-    }
-    private static DataType binaryDataCheck(NamespaceScope scope, OpcodeList opcodes, DataType tleft, DataType tright) throws CompilerError
-    {
-        if(DataType.canUseImplicitCast(tleft, tright))
-            return tleft;
-        if(tleft == DataType.INTEGER && tright == DataType.FLOAT)
-            return DataType.FLOAT;
-        throw new CompilerError("Cannot cast " + tleft + " to " + tright);
-    }
-    
-    private static DataType compileArrayGet(NamespaceScope scope, OpcodeList opcodes, Statement arrayOp, Statement indexOp) throws CompilerError
-    {
-        NamespaceIdentifier id;
-        if(arrayOp.isIdentifier() && (id = scope.getIdentifier(arrayOp.toString())).isLibraryElement());
-        else
-        {
-            id = null;
-            compile(scope, opcodes, arrayOp, false);
-        }
-        if(indexOp.isLiteral())
-        {
-            SGSImmutableValue value = ((Literal) indexOp).getSGSValue();
-            if(value.isInteger() && value.toInt() >= 0 && value.toInt() <= 0xff)
-                if(id != null)
-                    opcodes.append(Opcodes.libeArrayIntGet(id.getIndex(), value.toInt()));
-                else opcodes.append(Opcodes.arrayIntGet(value.toInt()));
-            else
-            {
-                compileLiteral(scope, opcodes, indexOp);
-                if(id != null)
-                    opcodes.append(Opcodes.libeArrayGet(id.getIndex()));
-                else opcodes.append(Opcodes.ARRAY_GET);
-            }
-        }
-        else
-        {
-            compile(scope, opcodes, indexOp, false);
-            if(id != null)
-                opcodes.append(Opcodes.libeArrayGet(id.getIndex()));
-            else opcodes.append(Opcodes.ARRAY_GET);
-        }
-        return DataType.ANY;
-    }
-    
-    private static DataType compilePropertyGet(NamespaceScope scope, OpcodeList opcodes, Statement objectOp, Identifier identifier) throws CompilerError
-    {
-        NamespaceIdentifier id;
-        if(objectOp.isIdentifier() && (id = scope.getIdentifier(objectOp.toString())).isLibraryElement())
-            opcodes.append(Opcodes.libePGet(id.getIndex(), scope.registerIdentifier(identifier.toString())));
-        else
-        {
-            compile(scope, opcodes, objectOp, false);
-            opcodes.append(Opcodes.objPGet(scope.registerIdentifier(identifier.toString())));
-        }
-        return DataType.ANY;
-    }
-    
-    private static DataType compileCall(NamespaceScope scope, OpcodeList opcodes, Statement funcOp, Arguments args, boolean popReturn) throws CompilerError
-    {
-        if(funcOp.isIdentifier())
-        {
-            NamespaceIdentifier id = scope.getIdentifier(funcOp.toString());
-            if(id.isFunction())
-            {
-                int count = compileArguments(scope, opcodes, args);
-                opcodes.append(Opcodes.localCall(id.getIndex(), count, popReturn));
-                return id.getReturnType();
-            }
-            else if(id.isLibraryElement())
-            {
-                int count = compileArguments(scope, opcodes, args);
-                opcodes.append(Opcodes.libeCall(id.getIndex(), count, popReturn));
-                return id.getReturnType();
-            }
-        }
-        compile(scope, opcodes, funcOp, false);
-        int count = compileArguments(scope, opcodes, args);
-        opcodes.append(Opcodes.call(count, popReturn));
-        return DataType.ANY;
-    }
-    
-    private static DataType compileInvoke(NamespaceScope scope, OpcodeList opcodes, Statement objOp, Identifier property, Arguments args, boolean popReturn) throws CompilerError
-    {
-        compile(scope, opcodes, objOp, false);
-        int count = compileArguments(scope, opcodes, args);
-        //NamespaceIdentifier id = scope.getIdentifier(property.toString());
-        int identifierIndex = scope.registerIdentifier(property.toString());
-        opcodes.append(Opcodes.invoke(identifierIndex, count, popReturn));
-        return DataType.ANY;
-    }
-    
-    private static DataType compileNew(NamespaceScope scope, OpcodeList opcodes, Statement base, Arguments args, boolean popReturn) throws CompilerError
-    {
-        if(base.isIdentifier())
-        {
-            NamespaceIdentifier id = scope.getIdentifier(base.toString());
-            if(id.isLibraryElement())
-            {
-                int count = compileArguments(scope, opcodes, args);
-                opcodes.append(Opcodes.libeNew(id.getIndex(), count, popReturn));
-                return DataType.OBJECT;
-            }
-        }
-        compile(scope, opcodes, base, false);
-        int count = compileArguments(scope, opcodes, args);
-        opcodes.append(Opcodes.New(count, popReturn));
-        return DataType.OBJECT;
-    }
-    
-    private static int compileArguments(NamespaceScope scope, OpcodeList opcodes, Arguments args) throws CompilerError
-    {
-        for(Statement arg : args)
-            compile(scope, opcodes, arg, false);
-        return args.getArgumentCount();
-    }
-    
-    private static DataType compileTernaryCondition(NamespaceScope scope, OpcodeList opcodes, Statement condOp, Statement trueOp, Statement falseOp, boolean pop) throws CompilerError
-    {
-        OpcodeLocation trueJump = compileCondition(scope, opcodes, condOp);
-        DataType falseType = compile(scope, opcodes, falseOp, pop);
-        OpcodeLocation endJump = opcodes.append(Opcodes.goTo());
-        opcodes.setJumpOpcodeLocationToBottom(trueJump);
-        DataType trueType = compile(scope, opcodes, trueOp, pop);
-        opcodes.setJumpOpcodeLocationToBottom(endJump);
-        if(pop)
-            opcodes.append(Opcodes.POP);
-        return DataType.canUseImplicitCast(trueType, falseType)
-                ? trueType : DataType.canUseImplicitCast(falseType, trueType)
-                ? falseType : DataType.ANY;
-    }
-    
-    private static DataType compileNewFunction(NamespaceScope scope, OpcodeList opcodes, Operation op, boolean pop) throws CompilerError
-    {
-        if(op.getOperandCount() == 2)
-            return compileNewFunction(scope, opcodes, null, op.getOperand(0), op.getOperand(1), pop);
-        return compileNewFunction(scope, opcodes, op.getOperand(0), op.getOperand(1), op.getOperand(2), pop);
-    }
-    public static final DataType compileNewFunction(NamespaceScope scope, OpcodeList opcodes, Identifier name, Arguments pars, Scope funcScope, boolean pop) throws CompilerError
-    {
-        Function func = scope.createFunction(name == null ? null : name.toString());
-        NamespaceScope child = scope.createChildScope(NamespaceScopeType.FUNCTION);
-        compileNewFunctionParameters(child, pars);
-        FunctionCompiler.compile(func, child, funcScope);
-        if(child.hasInheritedIds())
-        {
-            for(LocalVariable id : child.getInheritedIds())
-                if(id.isArgument())
-                    compileLoadArgument(scope, opcodes, id);
-                else opcodes.append(Opcodes.loadVar(id.getIndex()));
-            opcodes.append(Opcodes.loadClosure(func.getIndex(), child.getInheritedIdCount()));
-            if(name != null)
-            {
-                if(!pop)
-                    opcodes.append(Opcodes.DUP);
-                NamespaceIdentifier id = scope.registerClosure(func);
-                compileStoreIdentifier(scope, opcodes, id, DataType.ANY);
-            }
-            else if(pop)
-                opcodes.append(Opcodes.POP);
-        }
-        else
-        {
-            if(name != null)
-                scope.registerFunction(func);
-            if(!pop)
-                opcodes.append(Opcodes.loadFunction(func.getIndex()));
-        }
-        return DataType.ANY;
-    }
-    
-    public static final void compileNewFunctionParameters(NamespaceScope scope, Arguments pars) throws CompilerError
-    {
-        for(Statement par : pars)
-        {
-            if(par.isIdentifier())
-                scope.createArgument(par.toString(), DataType.ANY);
-            else if(par.isVarargs())
-                scope.createVarArgument(((Varargs) par).getName().toString());
-            else throw new CompilerError("Expected valid identifier for parameter name or varargs. But found: " + par);
-        }
-    }
-    
-    private static DataType compileAssignment(NamespaceScope scope, OpcodeList opcodes, Operator operator, Statement dest, Statement source, boolean pop) throws CompilerError
-    {
-        return store(scope, opcodes, dest, (s, o) -> {
-            if(operator.hasInnerOperator())
-                return compile(s, o, Operation.binary(operator.getInnerOperator(), dest, source), false);
-            return compile(s, o, source, false);
-        });
-    }
-    
-    private static DataType store(NamespaceScope scope, OpcodeList opcodes, Statement dest, StoreSource source) throws CompilerError
-    {
-        if(dest.isIdentifier())
-        {
-            DataType sourceType = source.compile(scope, opcodes);
-            NamespaceIdentifier id = scope.getIdentifier(dest.toString());
-            if(sourceType == null)
-                sourceType = id.getType();
-            return compileStoreIdentifier(scope, opcodes, id, sourceType);
-        }
-        else if(dest.isOperation())
-        {
-            Operation op = (Operation) dest;
-            if(op.isArrayGet())
-                return compileArraySet(scope, opcodes, op.getOperand(0), op.getOperand(1), source);
-            else if(op.isPropertyGet())
-                return compilePropertySet(scope, opcodes, op.getOperand(0), op.getOperand(1), source);
-            else if(op.getOperator() == Operator.INDIRECTION)
-                return compileIndirectionSet(scope, opcodes, op.getOperand(0), source);
-            else throw new CompilerError("Cannot store into :" + dest);
-        }
-        else throw new CompilerError("Cannot store into :" + dest);
-    }
-    
-    private static DataType compileStoreIdentifier(NamespaceScope scope, OpcodeList opcodes, NamespaceIdentifier identifier, DataType sourceType) throws CompilerError
-    {
-        DataType destType = identifier.getType();
-        if(!DataType.canUseImplicitCast(destType, sourceType))
-            throw new CompilerError("Cannot assign " + sourceType + " to " + identifier.getType());
-        if(destType != sourceType)
-        {
-            switch(destType.getTypeId())
-            {
-                case Type.INTEGER: opcodes.append(Opcodes.CAST_INT); break;
-                case Type.FLOAT: opcodes.append(Opcodes.CAST_FLOAT); break;
-                case Type.STRING: opcodes.append(Opcodes.CAST_STRING); break;
-                case Type.ARRAY: opcodes.append(Opcodes.CAST_ARRAY); break;
-                case Type.OBJECT: opcodes.append(Opcodes.CAST_OBJECT); break;
-            }
-        }
-        switch(identifier.getIdentifierType())
-        {
-            case LOCAL_VARIABLE: opcodes.append(Opcodes.storeVar(identifier.getIndex())); break;
-            case GLOBAL_VARIABLE: opcodes.append(Opcodes.storeGlobal(identifier.getIndex())); break;
-            default: throw new CompilerError("Cannot store value into " + identifier.getIdentifierType());
-        }
-            
-        return identifier.getType();
-    }
-    
-    private static DataType compileArraySet(NamespaceScope scope, OpcodeList opcodes, Statement arrayOp, Statement indexOp, StoreSource source) throws CompilerError
-    {
-        NamespaceIdentifier id;
-        if(arrayOp.isIdentifier() && (id = scope.getIdentifier(arrayOp.toString())).isLibraryElement());
-        else
-        {
-            id = null;
-            compile(scope, opcodes, arrayOp, false);
-        }
-        if(indexOp.isLiteral())
-        {
-            SGSImmutableValue value = ((Literal) indexOp).getSGSValue();
-            if(value.isInteger() && value.toInt() >= 0 && value.toInt() <= 0xff)
-            {
-                source.compile(scope, opcodes);
-                opcodes.append(Opcodes.arrayIntSet(value.toInt()));
-            }
-            else
-            {
-                compileLiteral(scope, opcodes, indexOp);
-                source.compile(scope, opcodes);
-                if(id != null)
-                    opcodes.append(Opcodes.libeArrayGet(id.getIndex()));
-                else opcodes.append(Opcodes.ARRAY_SET);
-            }
-        }
-        else
-        {
-            compile(scope, opcodes, indexOp, false);
-            source.compile(scope, opcodes);
-            opcodes.append(Opcodes.ARRAY_SET);
-        }
-        return DataType.ANY;
-    }
-    
-    private static DataType compilePropertySet(NamespaceScope scope, OpcodeList opcodes, Statement objectOp, Identifier identifier, StoreSource source) throws CompilerError
-    {
-        compile(scope, opcodes, objectOp, false);
-        source.compile(scope, opcodes);
-        opcodes.append(Opcodes.objPSet(scope.registerIdentifier(identifier.toString())));
-        return DataType.ANY;
-    }
-    
-    private static DataType compileIndirectionSet(NamespaceScope scope, OpcodeList opcodes, Statement operand, StoreSource source) throws CompilerError
-    {
-        compile(scope, opcodes, operand, false);
-        source.compile(scope, opcodes);
-        opcodes.append(Opcodes.REF_SET);
-        return DataType.ANY;
-    }
-    
-    public static final OpcodeLocation compileCondition(NamespaceScope scope, OpcodeList opcodes, Statement statement) throws CompilerError
-    {
-        Operation op;
-        if(statement.isOperation() && (op = (Operation) statement).getOperatorSymbol().isConditional())
-        {
-            switch(op.getOperatorSymbol())
-            {
-                case NOT:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    return opcodes.append(Opcodes.ifInv());
-                case ISDEF:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    return opcodes.append(Opcodes.ifDef());
-                case ISUNDEF:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    return opcodes.append(Opcodes.ifUndef());
-                case GREATER_THAN:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifGr());
-                case SMALLER_THAN:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifSm());
-                case GREATER_EQUALS_THAN:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifGrEq());
-                case SMALLER_EQUALS_THAN:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifSmEq());
-                case EQUALS:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifEq());
-                case NOT_EQUALS:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifNEq());
-                case TYPED_EQUALS:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifTEq());
-                case TYPED_NOT_EQUALS:
-                    compile(scope, opcodes, op.getOperand(0), false);
-                    compile(scope, opcodes, op.getOperand(1), false);
-                    return opcodes.append(Opcodes.ifTNEq());
-                default: throw new IllegalStateException();
-            }
-        }
-        else
-        {
-            compile(scope, opcodes, statement, false);
-            return opcodes.append(Opcodes.IF());
-        }
-    }
-    public static final OpcodeLocation compileDefaultIf(NamespaceScope scope, OpcodeList opcodes, Statement statement) throws CompilerError
-    {
-        OpcodeLocation loc = compileCondition(scope, opcodes, statement);
-        OpcodeLocation locJump = opcodes.append(Opcodes.goTo());
-        opcodes.setJumpOpcodeLocationToBottom(loc);
-        return locJump;
-    }
-    
-    @FunctionalInterface
-    private static interface StoreSource
-    {
-        DataType compile(NamespaceScope scope, OpcodeList opcodes) throws CompilerError;
+        
+        throw new IllegalStateException();
     }
 }

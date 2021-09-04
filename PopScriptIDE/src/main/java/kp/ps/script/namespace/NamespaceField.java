@@ -31,29 +31,46 @@ public abstract class NamespaceField
     
     public abstract NamespaceFieldType getFieldType();
     
-    public final boolean isTypedValue() { return getFieldType() == NamespaceFieldType.TOKEN; }
+    public final boolean isTypedValue() { return getFieldType() == NamespaceFieldType.TYPED_VALUE; }
     public final boolean isInternal() { return getFieldType() == NamespaceFieldType.INTERNAL; }
     public final boolean isConstant() { return getFieldType() == NamespaceFieldType.CONSTANT; }
     
-    public TypedValue getTypedValue() { throw new IllegalStateException(); }
-    public ScriptInternal getInternal() { throw new IllegalStateException(); }
-    public Int32 getValue() { throw new IllegalStateException(); }
+    public TypedValue getTypedValue() throws CompilerException { throw new IllegalStateException(); }
+    public ScriptInternal getInternal() throws CompilerException { throw new IllegalStateException(); }
+    public Int32 getValue() throws CompilerException { throw new IllegalStateException(); }
+    
+    public abstract boolean isInitiated();
+    
+    public void initiateTypedValue(TypedValue value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a %s value with %s type.", value.getType(), getType());
+    }
+    public void initiateInternal(ScriptInternal value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a int value with %s type.", getType());
+    }
+    public void initiateConstant(Int32 value) throws CompilerException
+    {
+        throw new CompilerException("Cannot assign a int value with %s type.", getType());
+    }
     
     public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     
     
-    static final NamespaceField typedValue(String name, TypedValue value)
+    public static final NamespaceField typedValue(String name, TypeId type)
     {
-        return new TypedValueNamespaceField(name, value);
+        if(type == null || type == TypeId.INT)
+            throw new IllegalStateException();
+        return new TypedValueNamespaceField(name, type);
     }
     
-    static final NamespaceField internal(String name, ScriptInternal internal)
+    public static final NamespaceField internal(String name)
     {
-        return new InternalNamespaceField(name, internal);
+        return new InternalNamespaceField(name);
     }
     
-    public static final NamespaceField constant(String name, Int32 value)
+    public static final NamespaceField constant(String name)
     {
-        return new ConstantNamespaceField(name, value);
+        return new ConstNamespaceField(name);
     }
 }

@@ -11,7 +11,7 @@ package kp.ps.script.namespace;
  */
 public enum NamespaceFieldType
 {
-    TOKEN,
+    TYPED_VALUE,
     INTERNAL,
     CONSTANT,
     MACRO;

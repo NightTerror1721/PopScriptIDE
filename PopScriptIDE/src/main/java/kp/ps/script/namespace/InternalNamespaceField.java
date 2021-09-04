@@ -7,6 +7,7 @@ package kp.ps.script.namespace;
 
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.TypeId;
 
 /**
@@ -15,20 +16,38 @@ import kp.ps.script.compiler.TypeId;
  */
 final class InternalNamespaceField extends NamespaceField
 {
-    private final ScriptInternal internal;
+    private ScriptInternal internal;
     
-    InternalNamespaceField(String name, ScriptInternal internal)
+    InternalNamespaceField(String name)
     {
         super(name);
-        this.internal = Objects.requireNonNull(internal);
     }
     
     @Override
-    public final NamespaceFieldType getFieldType() { return NamespaceFieldType.INTERNAL; }
+    public final NamespaceFieldType getFieldType()
+    {
+        return NamespaceFieldType.INTERNAL;
+    }
     
     @Override
     public final TypeId getType() { return TypeId.INT; }
     
     @Override
-    public final ScriptInternal getInternal() { return internal; }
+    public final ScriptInternal getInternal() throws CompilerException
+    {
+        if(!isInitiated())
+            throw new CompilerException("internal int %s value is not initiated", getName());
+        return internal;
+    }
+    
+    @Override
+    public final boolean isInitiated() { return internal != null; }
+    
+    @Override
+    public final void initiateInternal(ScriptInternal value) throws CompilerException
+    {
+        if(isInitiated())
+            throw new CompilerException("internal int %s value already initiated", getName());
+        this.internal = Objects.requireNonNull(value);
+    }
 }

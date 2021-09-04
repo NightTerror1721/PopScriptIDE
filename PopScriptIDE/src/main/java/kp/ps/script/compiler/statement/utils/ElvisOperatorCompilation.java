@@ -11,7 +11,10 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementValue;
+import kp.ps.utils.ints.Int32;
 
 /**
  *
@@ -38,28 +41,28 @@ public class ElvisOperatorCompilation implements StatementTask
         
         try(TemporaryVars temps = TemporaryVars.open(state, code))
         {
-            switch(StatementSupport.compileIfCommand(state, code, conditionOperand))
+            switch(StatementCompiler.compileIfCommand(state, code, conditionOperand))
             {
                 case TRUE: {
                     MemoryAddress alloc = temps.normalCompileWithTemp(trueOperand);
-                    StatementSupport.assignation(retloc, alloc).normalCompile(state, code);
+                    StatementTaskUtils.assignation(retloc, alloc).normalCompile(state, code);
                 } break;
                     
                 case FALSE: {
                     MemoryAddress alloc = temps.normalCompileWithTemp(falseOperand);
-                    StatementSupport.assignation(retloc, alloc).normalCompile(state, code);
+                    StatementTaskUtils.assignation(retloc, alloc).normalCompile(state, code);
                 } break;
                     
                 case UNKNOWN: {
                     MemoryAddress alloc;
                     code.insertTokenCode(ScriptToken.BEGIN);
                     alloc = temps.normalCompileWithTemp(trueOperand);
-                    StatementSupport.assignation(retloc, alloc).normalCompile(state, code);
+                    StatementTaskUtils.assignation(retloc, alloc).normalCompile(state, code);
                     code.insertTokenCode(ScriptToken.END);
                     code.insertTokenCode(ScriptToken.ELSE);
                     code.insertTokenCode(ScriptToken.BEGIN);
                     alloc = temps.normalCompileWithTemp(falseOperand);
-                    StatementSupport.assignation(retloc, alloc).normalCompile(state, code);
+                    StatementTaskUtils.assignation(retloc, alloc).normalCompile(state, code);
                     code.insertTokenCode(ScriptToken.END);
                 } break;
                 
@@ -72,9 +75,23 @@ public class ElvisOperatorCompilation implements StatementTask
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        return conditionOperand.constCompile() != 0 ? trueOperand.constCompile() : falseOperand.constCompile();
+        StatementValue cond = conditionOperand.constCompile();
+        StatementValue istrue = trueOperand.constCompile();
+        StatementValue isfalse = falseOperand.constCompile();
+        
+        if(!cond.isConstant() || !istrue.isConstant() || !isfalse.isConstant())
+            throw new IllegalStateException();
+        
+        Int32 result = cond.getConstantValue().toInt() != 0 ? istrue.getConstantValue() : isfalse.getConstantValue();
+        return StatementValue.of(result);
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use ?: operator in internal environment.");
     }
 
     @Override

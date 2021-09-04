@@ -12,6 +12,7 @@ import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementValue;
 
 /**
  *
@@ -22,42 +23,75 @@ public class SumSubCompilation implements StatementTask
     private final StatementTask leftOperand;
     private final StatementTask rightOperand;
     private final boolean sumMode;
+    private final boolean compoundAssignment;
     
-    SumSubCompilation(StatementTask leftOperand, StatementTask rightOperand, boolean sumMode)
+    SumSubCompilation(StatementTask leftOperand, StatementTask rightOperand, boolean sumMode, boolean compoundAssignment)
     {
         this.leftOperand = Objects.requireNonNull(leftOperand);
         this.rightOperand = Objects.requireNonNull(rightOperand);
         this.sumMode = sumMode;
+        this.compoundAssignment = compoundAssignment;
     }
     
     @Override
     public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
     {
-        if(retloc.isInvalid())
-            throw new CompilerException("The %s result must be stored in any valid location.", (sumMode ? "sum" : "sub"));
-        
-        try(TemporaryVars temps = TemporaryVars.open(state, code))
+        if(compoundAssignment)
         {
-            MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
-            MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
-            
-            if(left.isConstant() && right.isConstant())
-                return MemoryAddress.of(constOperation(left.getConstantValue(), right.getConstantValue()));
-            
-            if(!retloc.equals(left))
-                StatementSupport.assignation(retloc, left).normalCompile(state, code);
-            
-            code.insertTokenCode(sumMode ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
-            retloc.compileWrite(state, code);
-            right.compileRead(state, code);
-            return retloc;
+            try(TemporaryVars temps = TemporaryVars.open(state, code))
+            {
+                MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
+                MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
+
+                code.insertTokenCode(sumMode ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
+                left.compileWrite(state, code);
+                right.compileRead(state, code);
+                
+                if(!retloc.isInvalid())
+                    return StatementTaskUtils.assignation(retloc, left).normalCompile(state, code);
+                return retloc;
+            }
+        }
+        else
+        {
+            if(retloc.isInvalid())
+                    throw new CompilerException("The %s result must be stored in any valid location.", (sumMode ? "sum" : "sub"));
+
+            try(TemporaryVars temps = TemporaryVars.open(state, code))
+            {
+                MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
+                MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
+
+                if(left.isConstant() && right.isConstant())
+                    return MemoryAddress.of(constOperation(left.getConstantValue(), right.getConstantValue()));
+
+                if(!retloc.equals(left))
+                    StatementTaskUtils.assignation(retloc, left).normalCompile(state, code);
+
+                code.insertTokenCode(sumMode ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
+                retloc.compileWrite(state, code);
+                right.compileRead(state, code);
+                return retloc;
+            }
         }
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        return constOperation(leftOperand.constCompile(), rightOperand.constCompile());
+        StatementValue left = leftOperand.constCompile();
+        StatementValue right = rightOperand.constCompile();
+        
+        if(compoundAssignment)
+            throw new CompilerException("Cannot use %s operator in internal environment.", (sumMode ? "+=" : "-="));
+        
+        return StatementValue.of(constOperation(left.getConstantValue().toInt(), right.getConstantValue().toInt()));
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in internal environment.", (sumMode ? "+" : "-"));
     }
 
     @Override

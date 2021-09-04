@@ -39,18 +39,24 @@ public class IncDecCompilation implements StatementTask
             throw new CompilerException("Required valid user or internal variable to store %s operator result", (incMode ? "increase" : "decrease"));
         
         if(prefix && !retloc.isInvalid())
-            StatementSupport.assignation(retloc, var);
-        new SumSubCompilation(operand, StatementValue.of(Int32.ONE), incMode).normalCompile(state, code, var);
+            StatementTaskUtils.assignation(retloc, var);
+        new SumSubCompilation(operand, StatementValue.of(Int32.ONE), incMode, false).normalCompile(state, code, var);
         if(!prefix && !retloc.isInvalid())
-            StatementSupport.assignation(retloc, var);
+            StatementTaskUtils.assignation(retloc, var);
         
         return retloc.isInvalid() ? var : retloc;
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        throw new CompilerException("Cannot %s variable in const environment.", (incMode ? "increase" : "decrease"));
+        throw new CompilerException("Cannot use %s operator in const environment.", (incMode ? "++" : "--"));
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in internal environment.", (incMode ? "++" : "--"));
     }
 
     @Override

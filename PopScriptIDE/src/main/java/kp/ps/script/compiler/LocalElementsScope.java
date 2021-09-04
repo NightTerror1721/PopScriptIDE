@@ -79,7 +79,7 @@ public class LocalElementsScope
         fieldsManager.popVariables(1);
     }
     
-    public final Element createConstant(String identifier, Int32 value) throws CompilerException
+    public final Element createConstant(String identifier) throws CompilerException
     {
         if(elements.containsKey(identifier))
             throw new IllegalStateException();
@@ -87,7 +87,7 @@ public class LocalElementsScope
         if(!temporals.isEmpty())
             throw new IllegalStateException("Cannot create variable if temporals it's not empty.");
         
-        ConstantElement elem = new ConstantElement(value);
+        ConstElement elem = new ConstElement();
         elements.put(identifier, elem);
         return elem;
     }
@@ -102,22 +102,22 @@ public class LocalElementsScope
         return elem;
     }
     
-    public final Element createInternal(String identifier, ScriptInternal internal) throws CompilerException
+    public final Element createInternal(String identifier)
     {
         if(elements.containsKey(identifier))
             throw new IllegalStateException();
         
-        InternalElement elem = new InternalElement(internal);
+        InternalElement elem = new InternalElement();
         elements.put(identifier, elem);
         return elem;
     }
     
-    public final Element createTypedValue(String identifier, TypedValue value)
+    public final Element createTypedValue(String identifier, TypeId type)
     {
         if(elements.containsKey(identifier))
             throw new IllegalStateException();
         
-        TypedValueElement elem = new TypedValueElement(value);
+        TypedValueElement elem = new TypedValueElement(type);
         elements.put(identifier, elem);
         return elem;
     }
@@ -150,9 +150,9 @@ public class LocalElementsScope
         public TypeId getType() { return TypeId.INT; }
         
         public VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException { throw new IllegalStateException(); }
-        public Int32 getConstantValue() { throw new IllegalStateException(); }
-        public ScriptInternal getInternal() { throw new IllegalStateException(); }
-        public TypedValue getTypedValue() { throw new IllegalStateException(); }
+        public Int32 getConstantValue() throws CompilerException { throw new IllegalStateException(); }
+        public ScriptInternal getInternal() throws CompilerException { throw new IllegalStateException(); }
+        public TypedValue getTypedValue() throws CompilerException { throw new IllegalStateException(); }
         
         public boolean isConstant() { return false; }
         public boolean isVariable() { return false; }
@@ -161,23 +161,44 @@ public class LocalElementsScope
         
         public boolean isVariableInitiated() { throw new IllegalStateException(); }
         
+        public boolean isConstInitiated() { throw new IllegalStateException(); }
+        
+        public void initiateConstConstantValue(Int32 value) throws CompilerException { throw new IllegalStateException(); }
+        public void initiateConstInternalValue(ScriptInternal value) throws CompilerException { throw new IllegalStateException(); }
+        public void initiateConstTypedValueValue(TypedValue value) throws CompilerException { throw new IllegalStateException(); }
+        
+        protected boolean isAlias() { return false; }
+        
         public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     }
     
-    private final class ConstantElement extends Element
+    private final class ConstElement extends Element
     {
-        private final Int32 value;
+        private Int32 value;
         
-        private ConstantElement(Int32 value)
-        {
-            this.value = Objects.requireNonNull(value);
-        }
+        private ConstElement() {}
         
         @Override
         public final boolean isConstant() { return true; }
         
         @Override
-        public final Int32 getConstantValue() { return value; }
+        public final Int32 getConstantValue() throws CompilerException
+        {
+            if(!isConstInitiated())
+                throw new CompilerException("const int value is not initiated");
+            return value;
+        }
+        
+        @Override
+        public final boolean isConstInitiated() { return value != null; }
+        
+        @Override
+        public final void initiateConstConstantValue(Int32 value) throws CompilerException
+        {
+            if(isConstInitiated())
+                throw new CompilerException("const int value already initiated");
+            this.value = Objects.requireNonNull(value);
+        }
     }
     
     private final class VariableElement extends Element
@@ -208,34 +229,68 @@ public class LocalElementsScope
     {
         private ScriptInternal internal;
         
-        private InternalElement(ScriptInternal internal)
-        {
-            this.internal = Objects.requireNonNull(internal);
-        }
+        private InternalElement() {}
         
         @Override
         public final boolean isInternal() { return true; }
         
         @Override
-        public final ScriptInternal getInternal() { return internal; }
+        public final ScriptInternal getInternal() throws CompilerException
+        {
+            if(!isConstInitiated())
+                throw new CompilerException("internal int value is not initiated");
+            return internal;
+        }
+        
+        @Override
+        public final boolean isConstInitiated() { return internal != null; }
+        
+        @Override
+        public final void initiateConstInternalValue(ScriptInternal value) throws CompilerException
+        {
+            if(isConstInitiated())
+                throw new CompilerException("internal int value already initiated");
+            this.internal = Objects.requireNonNull(value);
+        }
     }
     
     private final class TypedValueElement extends Element
     {
+        private final TypeId type;
         private TypedValue value;
         
-        private TypedValueElement(TypedValue value)
+        private TypedValueElement(TypeId type)
         {
-            this.value = Objects.requireNonNull(value);
+            this.type = Objects.requireNonNull(type);
         }
         
         @Override
         public final TypeId getType() { return value.getType(); }
         
         @Override
-        public final TypedValue getTypedValue() { return value; }
+        public final TypedValue getTypedValue() throws CompilerException
+        {
+            if(!isConstInitiated())
+                throw new CompilerException("internal %s value is not initiated", type);
+            return value;
+        }
         
         @Override
         public final boolean isTypedValue() { return true; }
+        
+        @Override
+        public final boolean isConstInitiated() { return value != null; }
+        
+        @Override
+        public final void initiateConstTypedValueValue(TypedValue value) throws CompilerException
+        {
+            if(isConstInitiated())
+                throw new CompilerException("internal %s value already initiated", type);
+            
+            if(type != null && type != value.getType())
+                throw new CompilerException("Cannot assign value from %s type to %s.", value.getType(), type);
+            
+            this.value = Objects.requireNonNull(value);
+        }
     }
 }

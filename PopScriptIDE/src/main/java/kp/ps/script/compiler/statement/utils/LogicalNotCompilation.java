@@ -45,11 +45,11 @@ public class LogicalNotCompilation implements StatementTask
             loc.compileRead(state, code);
             MemoryAddress.of(Int32.ZERO).compileRead(state, code);
             code.insertTokenCode(ScriptToken.BEGIN);
-            StatementSupport.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
             code.insertTokenCode(ScriptToken.END);
             code.insertTokenCode(ScriptToken.ELSE);
             code.insertTokenCode(ScriptToken.BEGIN);
-            StatementSupport.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
             code.insertTokenCode(ScriptToken.END);
             
             return retloc;
@@ -57,9 +57,18 @@ public class LogicalNotCompilation implements StatementTask
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        return operand.constCompile() == 0 ? 1 : 0;
+        StatementValue value = operand.constCompile();
+        if(!value.isConstant())
+            throw new IllegalStateException();
+        return StatementValue.of(value.getConstantValue().toInt() == 0 ? Int32.ONE : Int32.ZERO);
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use ! operator in internal environment.");
     }
 
     @Override

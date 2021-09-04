@@ -21,12 +21,12 @@ public abstract class MemoryAddress implements StatementTask
 {
     private MemoryAddress() {}
     
-    public abstract boolean canRead();
-    public abstract boolean canWrite();
+    public abstract boolean canRead() throws CompilerException;
+    public abstract boolean canWrite() throws CompilerException;
     public abstract void compileRead(CompilerState state, CodeManager code) throws CompilerException;
     
     public abstract boolean isConstant();
-    public abstract int getConstantValue();
+    public abstract int getConstantValue() throws CompilerException;
     
     @Override
     public abstract boolean equals(Object o);
@@ -41,7 +41,7 @@ public abstract class MemoryAddress implements StatementTask
         compileRead(state, code);
     }
     
-    public final boolean isInvalid() { return !canRead(); }
+    public abstract boolean isInvalid();
     
     public static final MemoryAddress of(StatementValue value) throws CompilerException { return new ValueMemoryAddress(value); }
     public static final MemoryAddress of(int value) throws CompilerException { return of(StatementValue.of(value)); }
@@ -60,14 +60,17 @@ public abstract class MemoryAddress implements StatementTask
         {
             this.value = Objects.requireNonNull(value);
             if(value.isTypedValue())
-                throw new CompilerException("Token is not a valid store location.");
+                throw new CompilerException("Typed value is not a valid store location.");
         }
+        
+        @Override
+        public final boolean isInvalid() { return false; }
         
         @Override
         public final boolean canRead() { return true; }
 
         @Override
-        public final boolean canWrite()
+        public final boolean canWrite() throws CompilerException
         {
             return value.isVariable() || (value.isInternal() && !value.getInternal().isConstant());
         }
@@ -87,7 +90,7 @@ public abstract class MemoryAddress implements StatementTask
         public final boolean isConstant() { return value.isConstant(); }
 
         @Override
-        public final int getConstantValue() { return value.getConstantValue().toInt(); }
+        public final int getConstantValue() throws CompilerException { return value.getConstantValue().toInt(); }
         
         @Override
         public final boolean equals(Object o)
@@ -122,9 +125,15 @@ public abstract class MemoryAddress implements StatementTask
         }
 
         @Override
-        public int constCompile() throws CompilerException
+        public StatementValue constCompile() throws CompilerException
         {
             return value.constCompile();
+        }
+        
+        @Override
+        public final StatementValue internalCompile() throws CompilerException
+        {
+            return value.internalCompile();
         }
 
         @Override
@@ -137,6 +146,9 @@ public abstract class MemoryAddress implements StatementTask
     private static final class InvalidMemoryAddress extends MemoryAddress
     {
         private InvalidMemoryAddress() {}
+        
+        @Override
+        public final boolean isInvalid() { return true; }
         
         @Override
         public final boolean canRead() { return false; }
@@ -173,7 +185,13 @@ public abstract class MemoryAddress implements StatementTask
         }
 
         @Override
-        public int constCompile() throws CompilerException
+        public StatementValue constCompile() throws CompilerException
+        {
+            throw new IllegalStateException();
+        }
+        
+        @Override
+        public final StatementValue internalCompile() throws CompilerException
         {
             throw new IllegalStateException();
         }

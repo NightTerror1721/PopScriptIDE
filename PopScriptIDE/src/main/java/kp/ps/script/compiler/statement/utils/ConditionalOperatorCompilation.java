@@ -11,6 +11,7 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
 import kp.ps.script.compiler.statement.StatementValue;
 import kp.ps.utils.ints.Int32;
@@ -38,31 +39,43 @@ public class ConditionalOperatorCompilation implements StatementTask
         if(retloc.isInvalid())
             throw new CompilerException("Operator %s must store result in any valid location.", mode.operatorName);
         
-        try(TemporaryVars temps = TemporaryVars.open(state, code))
+        ConditionalState resultState = StatementCompiler.compileIfCommand(state, code, this);
+        if(resultState != ConditionalState.UNKNOWN)
         {
-            MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
-            MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
-            
-            code.insertTokenCode(ScriptToken.IF);
-            code.insertTokenCode(mode.token);
-            left.compileRead(state, code);
-            right.compileRead(state, code);
+            if(resultState == ConditionalState.TRUE)
+                StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
+            else StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
+        }
+        else
+        {
             code.insertTokenCode(ScriptToken.BEGIN);
-            StatementSupport.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ONE)).normalCompile(state, code);
             code.insertTokenCode(ScriptToken.END);
             code.insertTokenCode(ScriptToken.ELSE);
             code.insertTokenCode(ScriptToken.BEGIN);
-            StatementSupport.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
+            StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
             code.insertTokenCode(ScriptToken.END);
-            
-            return retloc;
         }
+
+        return retloc;
     }
 
     @Override
-    public int constCompile() throws CompilerException
+    public StatementValue constCompile() throws CompilerException
     {
-        return constOperation(leftOperand.constCompile(), rightOperand.constCompile());
+        StatementValue left = leftOperand.constCompile();
+        StatementValue right = rightOperand.constCompile();
+        
+        if(!left.isConstant() || !right.isConstant())
+            throw new IllegalStateException();
+        
+        return StatementValue.of(constOperation(left.getConstantValue().toInt(), right.getConstantValue().toInt()));
+    }
+    
+    @Override
+    public final StatementValue internalCompile() throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in internal environment.", mode.operatorName);
     }
 
     @Override

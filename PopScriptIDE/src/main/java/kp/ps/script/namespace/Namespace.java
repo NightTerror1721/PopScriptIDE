@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.Macro;
 import kp.ps.script.compiler.TypeId;
 import kp.ps.script.compiler.TypedValue;
@@ -114,15 +115,36 @@ public final class Namespace
     
     
     private static final HashMap<String, NamespaceField> GLOBALS = new HashMap<>();
-    private static void addGlobal(NamespaceField field)
+    private static NamespaceField addGlobal(NamespaceField field)
     {
         GLOBALS.put(field.getName(), field);
+        return field;
     }
     private static void addGlobalTypedValue(String name, ScriptToken token)
     {
-        TypedValue value = TypedValue.from(token);
+        addGlobalTypedValue(name, TypedValue.from(token));
+    }
+    private static void addGlobalTypedValue(String name, TypedValue value)
+    {
         if(value != null)
-            addGlobal(NamespaceField.typedValue(name, value));
+        {
+            try
+            {
+                addGlobal(NamespaceField.typedValue(name, value.getType())).initiateTypedValue(value);
+            }
+            catch(CompilerException ex) { throw new IllegalStateException(ex); }
+        }
+    }
+    private static void addGlobalInternal(String name, ScriptInternal internal)
+    {
+        if(internal != null)
+        {
+            try
+            {
+                addGlobal(NamespaceField.internal(name)).initiateInternal(internal);
+            }
+            catch(CompilerException ex) { throw new IllegalStateException(ex); }
+        }
     }
     static
     {
@@ -155,10 +177,10 @@ public final class Namespace
         
         // action //
         for(TypedValue action : TypedValue.from(TypeId.ACTION))
-            addGlobal(NamespaceField.typedValue(action.getToken().name(), action));
+            addGlobalTypedValue(action.getToken().name(), action);
         
         // int //
         for(ScriptInternal internal : ScriptInternal.values())
-            addGlobal(NamespaceField.internal(internal.name(), internal));
+            addGlobalInternal(internal.name(), internal);
     }
 }
