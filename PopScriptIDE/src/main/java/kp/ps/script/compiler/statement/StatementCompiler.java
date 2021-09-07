@@ -10,8 +10,11 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
+import kp.ps.script.instruction.Instruction;
+import kp.ps.script.parser.Fragment;
 import kp.ps.script.parser.Operation;
 import kp.ps.script.parser.Operator;
+import kp.ps.script.parser.Scope;
 import kp.ps.script.parser.Statement;
 
 /**
@@ -44,6 +47,55 @@ public final class StatementCompiler
         code.insertCode(cond);
         
         return result;
+    }
+    
+    public static final void compileScope(CompilerState state, CodeManager code, Fragment statement) throws CompilerException
+    {
+        compileScope(state, code, statement, false);
+    }
+    
+    public static final void compileScope(CompilerState state, CodeManager code, Fragment statement, boolean fakeScope) throws CompilerException
+    {
+        if(statement.isScope())
+        {
+            Scope scope = (Scope) statement;
+            state.pushLocalElements();
+            code.insertTokenCode(ScriptToken.BEGIN);
+            for(Instruction inst : scope)
+                inst.normalCompile(state, code);
+            code.insertTokenCode(ScriptToken.END);
+            state.popLocalElements();
+        }
+        else if(statement.isStatement())
+        {
+            StatementTask task = toTask(state, ((Statement) statement));
+            state.pushLocalElements();
+            code.insertTokenCode(ScriptToken.BEGIN);
+            task.normalCompile(state, code);
+            code.insertTokenCode(ScriptToken.END);
+            state.popLocalElements();
+        }
+        else throw new CompilerException("Expected valid scope, but found '%s'.", statement);
+    }
+    
+    public static final void compileConstScope(CompilerState state, Fragment statement) throws CompilerException
+    {
+        if(statement.isScope())
+        {
+            Scope scope = (Scope) statement;
+            state.pushLocalElements();
+            for(Instruction inst : scope)
+                inst.constCompile(state);
+            state.popLocalElements();
+        }
+        else if(statement.isStatement())
+        {
+            StatementTask task = toTask(state, ((Statement) statement));
+            state.pushLocalElements();
+            task.constCompile();
+            state.popLocalElements();
+        }
+        else throw new CompilerException("Expected valid scope, but found '%s'.", statement);
     }
     
     public static final StatementTask toTask(CompilerState state, Statement statement) throws CompilerException

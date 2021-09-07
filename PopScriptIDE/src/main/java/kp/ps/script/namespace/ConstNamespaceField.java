@@ -7,7 +7,9 @@ package kp.ps.script.namespace;
 
 import java.util.Objects;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -31,6 +33,9 @@ final class ConstNamespaceField extends NamespaceField
     
     @Override
     public final TypeId getType() { return TypeId.INT; }
+    
+    @Override
+    public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.CONST); }
     
     @Override
     public final Int32 getValue() throws CompilerException

@@ -7,8 +7,10 @@ package kp.ps.script.namespace;
 
 import java.util.Objects;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.TypeId;
 import kp.ps.script.compiler.TypedValue;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 
 /**
  *
@@ -30,6 +32,9 @@ final class TypedValueNamespaceField extends NamespaceField
     
     @Override
     public final TypeId getType() { return type; }
+    
+    @Override
+    public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.INTERNAL); }
     
     @Override
     public final TypedValue getTypedValue() throws CompilerException

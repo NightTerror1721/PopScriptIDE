@@ -59,6 +59,12 @@ public class AndOrCompilation implements StatementTask
 
         return retloc;
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in var assignment.", (andMode ? "&&" : "||"));
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException

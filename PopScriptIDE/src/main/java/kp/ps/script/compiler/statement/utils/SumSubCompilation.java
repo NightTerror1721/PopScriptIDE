@@ -75,6 +75,14 @@ public class SumSubCompilation implements StatementTask
             }
         }
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        if(compoundAssignment)
+            throw new CompilerException("Cannot use %s operator in var assignment.", (sumMode ? "+=" : "-="));
+        throw new CompilerException("Cannot use %s operator in var assignment.", (sumMode ? "+" : "-"));
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException

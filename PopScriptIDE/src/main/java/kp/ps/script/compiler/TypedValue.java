@@ -6,11 +6,12 @@
 package kp.ps.script.compiler;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import kp.ps.script.ScriptToken;
+import kp.ps.script.compiler.types.TypeId;
 
 /**
  *
@@ -27,6 +28,7 @@ public final class TypedValue
         this.token = Objects.requireNonNull(token);
     }
     
+    public final String getName() { return token.getLangName(); }
     public final TypeId getType() { return type; }
     public final ScriptToken getToken() { return token; }
     
@@ -96,6 +98,14 @@ public final class TypedValue
         values[TypeId.COUNT_WILD_T.ordinal()] = create(TypeId.COUNT_WILD_T,
                 ScriptToken.COUNT_WILD
         );
+        values[TypeId.SHOT_TYPE.ordinal()] = create(TypeId.SHOT_TYPE,
+                ScriptToken.SPELL_TYPE,
+                ScriptToken.BUILDING_TYPE
+        );
+        values[TypeId.VEHICLE_TYPE.ordinal()] = create(TypeId.VEHICLE_TYPE,
+                ScriptToken.BOAT_TYPE,
+                ScriptToken.BALLON_TYPE
+        );
         values[TypeId.ACTION.ordinal()] = createActions(TypeId.ACTION);
         
         return values;
@@ -103,9 +113,11 @@ public final class TypedValue
     
     private static Map<ScriptToken, TypedValue> initMap()
     {
-        return Stream.of(ALL)
-                .flatMap(Stream::of)
-                .collect(Collectors.toMap(TypedValue::getToken, v -> v));
+        HashMap<ScriptToken, TypedValue> map = new HashMap<>();
+        for(int i = 0; i < ALL.length; ++i)
+            for(int j = 0; j < ALL[i].length; ++j)
+                map.put(ALL[i][j].getToken(), ALL[i][j]);
+        return map;
     }
     
     private static TypedValue[] create(TypeId type, ScriptToken... tokens)

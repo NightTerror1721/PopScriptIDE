@@ -11,8 +11,8 @@ import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.Macro;
-import kp.ps.script.compiler.TypeId;
 import kp.ps.script.compiler.TypedValue;
+import kp.ps.script.compiler.types.TypeId;
 
 /**
  *
@@ -115,14 +115,17 @@ public final class Namespace
     
     
     private static final HashMap<String, NamespaceField> GLOBALS = new HashMap<>();
+    private static final HashMap<ScriptInternal, NamespaceField> INTERNAL_GLOBALS = new HashMap<>();
+    private static final HashMap<ScriptToken, NamespaceField> TOKEN_GLOBALS = new HashMap<>();
+    
     private static NamespaceField addGlobal(NamespaceField field)
     {
         GLOBALS.put(field.getName(), field);
         return field;
     }
-    private static void addGlobalTypedValue(String name, ScriptToken token)
+    private static void addGlobalTypedValue(ScriptToken token)
     {
-        addGlobalTypedValue(name, TypedValue.from(token));
+        addGlobalTypedValue(token.getLangName(), TypedValue.from(token));
     }
     private static void addGlobalTypedValue(String name, TypedValue value)
     {
@@ -130,7 +133,9 @@ public final class Namespace
         {
             try
             {
-                addGlobal(NamespaceField.typedValue(name, value.getType())).initiateTypedValue(value);
+                NamespaceField field = addGlobal(NamespaceField.typedValue(name, value.getType()));
+                field.initiateTypedValue(value);
+                TOKEN_GLOBALS.put(value.getToken(), field);
             }
             catch(CompilerException ex) { throw new IllegalStateException(ex); }
         }
@@ -141,7 +146,9 @@ public final class Namespace
         {
             try
             {
-                addGlobal(NamespaceField.internal(name)).initiateInternal(internal);
+                NamespaceField field = addGlobal(NamespaceField.internal(name));
+                field.initiateInternal(internal);
+                INTERNAL_GLOBALS.put(internal, field);
             }
             catch(CompilerException ex) { throw new IllegalStateException(ex); }
         }
@@ -149,31 +156,39 @@ public final class Namespace
     static
     {
         // state //
-        addGlobalTypedValue("on", ScriptToken.ON);
-        addGlobalTypedValue("off", ScriptToken.OFF);
+        addGlobalTypedValue(ScriptToken.ON);
+        addGlobalTypedValue(ScriptToken.OFF);
         
         // tribe //
-        addGlobalTypedValue("TRIBE_BLUE", ScriptToken.BLUE);
-        addGlobalTypedValue("TRIBE_RED", ScriptToken.RED);
-        addGlobalTypedValue("TRIBE_YELLOW", ScriptToken.YELLOW);
-        addGlobalTypedValue("TRIBE_GREEN", ScriptToken.GREEN);
+        addGlobalTypedValue(ScriptToken.BLUE);
+        addGlobalTypedValue(ScriptToken.RED);
+        addGlobalTypedValue(ScriptToken.YELLOW);
+        addGlobalTypedValue(ScriptToken.GREEN);
         
         // attack_target //
-        addGlobalTypedValue("ATTACK_MARKER", ScriptToken.ATTACK_MARKER);
-        addGlobalTypedValue("ATTACK_BUILDING", ScriptToken.ATTACK_BUILDING);
-        addGlobalTypedValue("ATTACK_PERSON", ScriptToken.ATTACK_PERSON);
+        addGlobalTypedValue(ScriptToken.ATTACK_MARKER);
+        addGlobalTypedValue(ScriptToken.ATTACK_BUILDING);
+        addGlobalTypedValue(ScriptToken.ATTACK_PERSON);
         
         // attack_mode //
-        addGlobalTypedValue("ATTACK_NORMAL", ScriptToken.ATTACK_NORMAL);
-        addGlobalTypedValue("ATTACK_BY_BOAT", ScriptToken.ATTACK_BY_BOAT);
-        addGlobalTypedValue("ATTACK_BY_BALLON", ScriptToken.ATTACK_BY_BALLON);
+        addGlobalTypedValue(ScriptToken.ATTACK_NORMAL);
+        addGlobalTypedValue(ScriptToken.ATTACK_BY_BOAT);
+        addGlobalTypedValue(ScriptToken.ATTACK_BY_BALLON);
         
         // guard_mode //
-        addGlobalTypedValue("GUARD_NORMAL", ScriptToken.GUARD_NORMAL);
-        addGlobalTypedValue("GUARD_WITH_GHOSTS", ScriptToken.GUARD_WITH_GHOSTS);
+        addGlobalTypedValue(ScriptToken.GUARD_NORMAL);
+        addGlobalTypedValue(ScriptToken.GUARD_WITH_GHOSTS);
         
         // count_wild_t //
-        addGlobalTypedValue("COUNT_WILD", ScriptToken.COUNT_WILD);
+        addGlobalTypedValue(ScriptToken.COUNT_WILD);
+        
+        // shot_type //
+        addGlobalTypedValue(ScriptToken.SPELL_TYPE);
+        addGlobalTypedValue(ScriptToken.BUILDING_TYPE);
+        
+        // vehicle_type //
+        addGlobalTypedValue(ScriptToken.BOAT_TYPE);
+        addGlobalTypedValue(ScriptToken.BALLON_TYPE);
         
         // action //
         for(TypedValue action : TypedValue.from(TypeId.ACTION))
@@ -182,5 +197,21 @@ public final class Namespace
         // int //
         for(ScriptInternal internal : ScriptInternal.values())
             addGlobalInternal(internal.name(), internal);
+    }
+    
+    public static final NamespaceField getGlobalByInternal(ScriptInternal internal)
+    {
+        NamespaceField field = INTERNAL_GLOBALS.get(internal);
+        if(field == null)
+            throw new IllegalStateException();
+        return field;
+    }
+    
+    public static final NamespaceField getGlobalByToken(ScriptToken token)
+    {
+        NamespaceField field = TOKEN_GLOBALS.get(token);
+        if(field == null)
+            throw new IllegalStateException();
+        return field;
     }
 }

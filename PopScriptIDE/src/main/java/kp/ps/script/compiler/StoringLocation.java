@@ -5,6 +5,7 @@
  */
 package kp.ps.script.compiler;
 
+import kp.ps.script.compiler.types.TypeId;
 import java.util.Objects;
 import kp.ps.script.compiler.LocalElementsScope.Element;
 import kp.ps.script.compiler.statement.StatementValue;

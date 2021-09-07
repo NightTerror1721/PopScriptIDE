@@ -17,6 +17,7 @@ import kp.ps.utils.ints.Int32;
 public interface StatementTask
 {
     MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException;
+    MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException;
     StatementValue constCompile() throws CompilerException;
     StatementValue internalCompile() throws CompilerException;
     ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException;
@@ -24,6 +25,16 @@ public interface StatementTask
     default MemoryAddress normalCompile(CompilerState state, CodeManager code)  throws CompilerException
     {
         return normalCompile(state, code, MemoryAddress.invalid());
+    }
+    
+    default StatementValue argCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
+    {
+        return normalCompile(state, code, retloc).toStatementValue();
+    }
+    
+    default Int32 constArgCompile() throws CompilerException
+    {
+        return constCompile().getConstantValue();
     }
     
     static enum ConditionalState

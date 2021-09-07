@@ -8,7 +8,9 @@ package kp.ps.script.namespace;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 
 /**
  *
@@ -31,6 +33,9 @@ final class InternalNamespaceField extends NamespaceField
     
     @Override
     public final TypeId getType() { return TypeId.INT; }
+    
+    @Override
+    public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.INTERNAL); }
     
     @Override
     public final ScriptInternal getInternal() throws CompilerException

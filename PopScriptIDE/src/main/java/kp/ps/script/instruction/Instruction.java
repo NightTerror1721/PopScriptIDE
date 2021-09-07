@@ -5,6 +5,8 @@
  */
 package kp.ps.script.instruction;
 
+import kp.ps.script.compiler.CodeManager;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 
 /**
@@ -13,5 +15,6 @@ import kp.ps.script.compiler.CompilerState;
  */
 public abstract class Instruction
 {
-    public abstract void compile(CompilerState state);
+    public abstract void normalCompile(CompilerState state, CodeManager code) throws CompilerException;
+    public abstract void constCompile(CompilerState state) throws CompilerException;
 }

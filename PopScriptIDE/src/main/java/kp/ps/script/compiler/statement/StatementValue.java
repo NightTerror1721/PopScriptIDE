@@ -13,9 +13,10 @@ import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
 import kp.ps.script.compiler.LocalElementsScope.Element;
-import kp.ps.script.compiler.TypeId;
 import kp.ps.script.compiler.TypedValue;
-import kp.ps.script.namespace.Namespace;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.script.parser.Identifier;
 import kp.ps.script.parser.Literal;
@@ -47,11 +48,7 @@ public abstract class StatementValue implements StatementTask
     
     public static final StatementValue decode(CompilerState state, NamespaceResolver resolver) throws CompilerException
     {
-        Namespace namespace = resolver.findNamespace(state.getNamespace());
-        String name = resolver.getLastIdentifier().getIdentifier();
-        if(!namespace.existsField(name))
-            throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
-        return of(namespace.getField(name));
+        return of(resolver.getNamespaceField(state.getNamespace()));
     }
     
     public static final StatementValue decode(CompilerState state, Statement statement) throws CompilerException
@@ -75,6 +72,8 @@ public abstract class StatementValue implements StatementTask
     public abstract Kind getKind();
     public abstract Location getLocation();
     public abstract TypeId getType();
+    
+    public abstract CompleteType getCompleteType() throws CompilerException;
     
     public abstract VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException;
     public abstract Int32 getConstantValue() throws CompilerException;
@@ -157,10 +156,18 @@ public abstract class StatementValue implements StatementTask
     }
     
     @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        if(isTypedValue())
+            throw new CompilerException("Cannot use non int elements in var assignment");
+        return toMemoryAddress();
+    }
+    
+    @Override
     public final StatementValue constCompile() throws CompilerException
     {
         if(!isConstant())
-            throw new CompilerException("Cannot use non constant elements in const environment");
+            throw new CompilerException("Cannot use non const elements in const assignment");
         return this;
     }
     
@@ -168,7 +175,7 @@ public abstract class StatementValue implements StatementTask
     public final StatementValue internalCompile() throws CompilerException
     {
         if(!isInternal() && !isTypedValue())
-            throw new CompilerException("Cannot use non internal elements in internal environment");
+            throw new CompilerException("Cannot use non internal elements in internal assignment");
         return this;
     }
     
@@ -186,6 +193,12 @@ public abstract class StatementValue implements StatementTask
         MemoryAddress.of(Int32.ZERO).compileRead(state, cond);
         
         return ConditionalState.UNKNOWN;
+    }
+    
+    @Override
+    public final StatementValue argCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
+    {
+        return this;
     }
 
     @Override
@@ -224,6 +237,9 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypeId getType() { return TypeId.INT; }
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.CONST); }
 
         @Override
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) { throw new IllegalStateException(); }
@@ -263,6 +279,9 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypeId getType() { return element.getType(); }
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return element.getCompleteType(); }
 
         @Override
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException
@@ -341,6 +360,9 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypeId getType() { return field.getType(); }
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return field.getCompleteType(); }
 
         @Override
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) { throw new IllegalStateException(); }

@@ -8,9 +8,10 @@ package kp.ps.script.namespace;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.TypeId;
 import kp.ps.script.compiler.TypedValue;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -27,6 +28,8 @@ public abstract class NamespaceField
     }
     
     public abstract TypeId getType();
+    public abstract CompleteType getCompleteType() throws CompilerException;
+    
     public final String getName() { return name; }
     
     public abstract NamespaceFieldType getFieldType();

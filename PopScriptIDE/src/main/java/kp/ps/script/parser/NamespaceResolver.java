@@ -9,7 +9,10 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import kp.ps.script.compiler.CompilerException;
+import kp.ps.script.compiler.Macro;
+import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.namespace.Namespace;
+import kp.ps.script.namespace.NamespaceField;
 
 /**
  *
@@ -52,6 +55,34 @@ public final class NamespaceResolver extends Statement
             root = root.getChild(path[i].getIdentifier());
         }
         return root;
+    }
+    
+    public final NamespaceField getNamespaceField(Namespace root) throws CompilerException
+    {
+        Namespace namespace = findNamespace(root);
+        String name = getLastIdentifier().getIdentifier();
+        if(!namespace.existsField(name))
+            throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
+        return namespace.getField(name);
+    }
+    
+    public final Macro getNamespaceMacro(Namespace root) throws CompilerException
+    {
+        Namespace namespace = findNamespace(root);
+        String name = getLastIdentifier().getIdentifier();
+        if(!namespace.existsMacro(name))
+            throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
+        return namespace.getMacro(name);
+    }
+    
+    public final boolean existsAction(Namespace root) throws CompilerException
+    {
+        Namespace namespace = findNamespace(root);
+        String name = getLastIdentifier().getIdentifier();
+        if(!namespace.existsField(name))
+            return false;
+        NamespaceField field = namespace.getField(name);
+        return field.isTypedValue() && field.getTypedValue().getType() == TypeId.ACTION;
     }
     
     @Override

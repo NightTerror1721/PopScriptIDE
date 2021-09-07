@@ -59,6 +59,12 @@ public class ConditionalOperatorCompilation implements StatementTask
 
         return retloc;
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in var assignment.", mode.operatorName);
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException

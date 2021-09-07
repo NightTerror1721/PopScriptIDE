@@ -14,6 +14,7 @@ import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.LocalElementsScope.Element;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementValue;
 
 /**
  *
@@ -90,6 +91,13 @@ public final class TemporaryVars implements Closeable
         addr = task.normalCompile(state, code, addr);
         popIfNotUsed();
         return addr;
+    }
+    
+    public final StatementValue argCompileWithTemp(StatementTask task) throws CompilerException
+    {
+        StatementValue value = task.argCompile(state, code, push());
+        popIfNotUsed();
+        return value;
     }
 
     @Override

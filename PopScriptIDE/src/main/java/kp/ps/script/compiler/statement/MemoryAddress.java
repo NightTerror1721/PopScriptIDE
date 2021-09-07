@@ -28,6 +28,8 @@ public abstract class MemoryAddress implements StatementTask
     public abstract boolean isConstant();
     public abstract int getConstantValue() throws CompilerException;
     
+    public abstract StatementValue toStatementValue();
+    
     @Override
     public abstract boolean equals(Object o);
     
@@ -93,6 +95,9 @@ public abstract class MemoryAddress implements StatementTask
         public final int getConstantValue() throws CompilerException { return value.getConstantValue().toInt(); }
         
         @Override
+        public final StatementValue toStatementValue() { return value; }
+        
+        @Override
         public final boolean equals(Object o)
         {
             if(this == o)
@@ -122,6 +127,12 @@ public abstract class MemoryAddress implements StatementTask
         public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
         {
             return value.normalCompile(state, code, retloc);
+        }
+        
+        @Override
+        public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+        {
+            return value.varCompile(state, code);
         }
 
         @Override
@@ -169,6 +180,9 @@ public abstract class MemoryAddress implements StatementTask
         public final int getConstantValue() { throw new IllegalStateException(); }
         
         @Override
+        public final StatementValue toStatementValue() { throw new IllegalStateException(); }
+        
+        @Override
         public final boolean equals(Object o)
         {
             if(this == o)
@@ -180,6 +194,12 @@ public abstract class MemoryAddress implements StatementTask
         
         @Override
         public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
+        {
+            throw new IllegalStateException();
+        }
+        
+        @Override
+        public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
         {
             throw new IllegalStateException();
         }

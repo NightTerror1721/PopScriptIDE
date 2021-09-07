@@ -11,6 +11,9 @@ import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.types.CompleteType;
+import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -149,6 +152,8 @@ public class LocalElementsScope
         
         public TypeId getType() { return TypeId.INT; }
         
+        public abstract CompleteType getCompleteType() throws CompilerException;
+        
         public VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException { throw new IllegalStateException(); }
         public Int32 getConstantValue() throws CompilerException { throw new IllegalStateException(); }
         public ScriptInternal getInternal() throws CompilerException { throw new IllegalStateException(); }
@@ -177,6 +182,9 @@ public class LocalElementsScope
         private Int32 value;
         
         private ConstElement() {}
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.CONST); }
         
         @Override
         public final boolean isConstant() { return true; }
@@ -211,6 +219,9 @@ public class LocalElementsScope
         }
         
         @Override
+        public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.VAR); }
+        
+        @Override
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException
         {
             if(variableIndex == null && createTemporalIfItIsNeeded)
@@ -230,6 +241,9 @@ public class LocalElementsScope
         private ScriptInternal internal;
         
         private InternalElement() {}
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.INTERNAL); }
         
         @Override
         public final boolean isInternal() { return true; }
@@ -263,6 +277,9 @@ public class LocalElementsScope
         {
             this.type = Objects.requireNonNull(type);
         }
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.INTERNAL); }
         
         @Override
         public final TypeId getType() { return value.getType(); }

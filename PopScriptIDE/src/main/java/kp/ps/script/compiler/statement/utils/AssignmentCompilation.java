@@ -54,6 +54,25 @@ public class AssignmentCompilation implements StatementTask
             else return left;
         }
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        try(TemporaryVars temps = TemporaryVars.open(state, code))
+        {
+            MemoryAddress left = target.varCompile(state, code);
+            MemoryAddress right = temps.normalCompileWithTemp(value);
+
+            if(left.canWrite())
+                throw new CompilerException("Required valid variable or non constant internal to store any value in normal environment.");
+
+            code.insertTokenCode(ScriptToken.SET);
+            left.compileWrite(state, code);
+            right.compileRead(state, code);
+
+            return left;
+        }
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException

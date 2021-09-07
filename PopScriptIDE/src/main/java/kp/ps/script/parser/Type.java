@@ -7,7 +7,7 @@ package kp.ps.script.parser;
 
 import java.util.HashMap;
 import java.util.Objects;
-import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.types.TypeId;
 
 /**
  *

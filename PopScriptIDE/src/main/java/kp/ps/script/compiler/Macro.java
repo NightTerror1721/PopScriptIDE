@@ -6,7 +6,7 @@
 package kp.ps.script.compiler;
 
 import java.util.Arrays;
-import kp.ps.script.compiler.TypeId;
+import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.instruction.Instruction;
 import kp.ps.script.parser.ArgumentList;
 import kp.ps.script.parser.Scope;

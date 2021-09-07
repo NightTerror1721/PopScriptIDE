@@ -73,6 +73,12 @@ public class ElvisOperatorCompilation implements StatementTask
             return retloc;
         }
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        throw new CompilerException("Cannot use ?: operator in var assignment.");
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException

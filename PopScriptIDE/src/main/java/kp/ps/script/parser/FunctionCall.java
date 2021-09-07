@@ -16,12 +16,12 @@ import java.util.stream.Stream;
  */
 public class FunctionCall extends Statement
 {
-    private final Identifier identifier;
+    private final Statement identifier;
     private final Statement[] args;
     
     public FunctionCall(Fragment identifier, Fragment args) throws SyntaxException
     {
-        if(!identifier.isIdentifier())
+        if(!identifier.isIdentifier() && identifier.isNamespaceResolverOperation())
             throw new SyntaxException("Can only call functions stored in valid identifiers.");
         if(!args.isArgumentList() || !((ArgumentList) args).isCallArguments())
             throw new SyntaxException("Expected valid arguments list after function call operator.");
@@ -32,10 +32,12 @@ public class FunctionCall extends Statement
                 .toArray(Statement[]::new);
     }
     
-    public final Identifier getIdentifier() { return identifier; }
+    public final Statement getIdentifier() { return identifier; }
     
     public final int getArgumentCount() { return args.length; }
     public final Statement getArgument(int index) { return args[index]; }
+    
+    public final Statement[] getAllArguments() { return Arrays.copyOf(args, args.length); }
     
     @Override
     public final FragmentType getFragmentType() { return FragmentType.FUNCTION_CALL; }

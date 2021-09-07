@@ -46,6 +46,12 @@ public class IncDecCompilation implements StatementTask
         
         return retloc.isInvalid() ? var : retloc;
     }
+    
+    @Override
+    public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
+    {
+        throw new CompilerException("Cannot use %s operator in var assignment.", (incMode ? "++" : "--"));
+    }
 
     @Override
     public StatementValue constCompile() throws CompilerException
