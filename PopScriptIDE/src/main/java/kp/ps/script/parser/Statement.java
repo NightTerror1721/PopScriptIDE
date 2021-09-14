@@ -11,8 +11,8 @@ package kp.ps.script.parser;
  */
 public abstract class Statement extends Fragment
 {
-
     @Override
     public final boolean isStatement() { return true; }
     
+    public boolean isElementReference() { return false; }
 }

@@ -14,11 +14,9 @@ public enum CommandId
     IF("if"),
     ELSE("else"),
     EVERY("every"),
-    DO("do"),
-    VAR("var"),
-    CONST("const"),
-    INTERNAL("internal"),
     MACRO("macro"),
+    MAIN("main"),
+    INIT("init"),
     IMPORT("import"),
     NAMESPACE("namespace"),
     RETURN("return");

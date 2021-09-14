@@ -18,7 +18,7 @@ import kp.ps.script.namespace.NamespaceField;
  *
  * @author Marc
  */
-public final class NamespaceResolver extends Statement
+public final class NamespaceResolver extends ElementReference
 {
     private final Identifier[] path;
     
@@ -50,9 +50,9 @@ public final class NamespaceResolver extends Statement
     {
         for(int i = 0; i < (path.length - 1); ++i)
         {
-            if(!root.existsChild(path[i].getIdentifier()))
+            if(!root.existsChild(path[i].toString()))
                 throw new CompilerException("'" + root + "' namespace has not '" + path[i] + "' member.");
-            root = root.getChild(path[i].getIdentifier());
+            root = root.getChild(path[i].toString());
         }
         return root;
     }
@@ -60,7 +60,7 @@ public final class NamespaceResolver extends Statement
     public final NamespaceField getNamespaceField(Namespace root) throws CompilerException
     {
         Namespace namespace = findNamespace(root);
-        String name = getLastIdentifier().getIdentifier();
+        String name = getLastIdentifier().toString();
         if(!namespace.existsField(name))
             throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
         return namespace.getField(name);
@@ -69,7 +69,7 @@ public final class NamespaceResolver extends Statement
     public final Macro getNamespaceMacro(Namespace root) throws CompilerException
     {
         Namespace namespace = findNamespace(root);
-        String name = getLastIdentifier().getIdentifier();
+        String name = getLastIdentifier().toString();
         if(!namespace.existsMacro(name))
             throw new CompilerException("'" + name + "' identifier not found in '" + namespace + "' namespace.");
         return namespace.getMacro(name);
@@ -78,7 +78,7 @@ public final class NamespaceResolver extends Statement
     public final boolean existsAction(Namespace root) throws CompilerException
     {
         Namespace namespace = findNamespace(root);
-        String name = getLastIdentifier().getIdentifier();
+        String name = getLastIdentifier().toString();
         if(!namespace.existsField(name))
             return false;
         NamespaceField field = namespace.getField(name);
@@ -92,7 +92,7 @@ public final class NamespaceResolver extends Statement
     public final String toString()
     {
         return Stream.of(path)
-                .map(Identifier::getIdentifier)
+                .map(Identifier::toString)
                 .collect(Collectors.joining("."));
     }
     

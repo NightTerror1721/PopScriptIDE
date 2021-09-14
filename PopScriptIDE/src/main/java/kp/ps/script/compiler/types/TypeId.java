@@ -33,8 +33,6 @@ public enum TypeId
     
     public final String getTypeName() { return name; }
     
-    public final boolean isFieldAssignable() { return this == INT; }
-    
     @Override
     public final String toString() { return name; }
     
@@ -51,5 +49,10 @@ public enum TypeId
     public static final CompleteType complete(TypeModifier modifier, TypeId type) throws CompilerException
     {
         return new CompleteType(modifier, type);
+    }
+    
+    public static final void check(TypeModifier modifier, TypeId type) throws CompilerException
+    {
+        type.complete(modifier);
     }
 }

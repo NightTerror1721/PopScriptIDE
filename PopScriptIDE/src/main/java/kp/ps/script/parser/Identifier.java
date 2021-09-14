@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  *
  * @author Marc
  */
-public final class Identifier extends Statement implements Comparable<Identifier>
+public final class Identifier extends ElementReference implements Comparable<Identifier>
 {
     private final String identifier;
     
@@ -20,8 +20,6 @@ public final class Identifier extends Statement implements Comparable<Identifier
     {
         this.identifier = Objects.requireNonNull(identifier);
     }
-    
-    public final String getIdentifier() { return identifier; }
     
     public final boolean equals(Identifier o)
     {

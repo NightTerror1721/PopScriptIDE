@@ -31,10 +31,11 @@ public abstract class Fragment
     public final boolean isLiteral() { return getFragmentType() == FragmentType.LITERAL; }
     public final boolean isOperator() { return getFragmentType() == FragmentType.OPERATOR; }
     public final boolean isOperation() { return getFragmentType() == FragmentType.OPERATION; }
-    public final boolean isAssignmentOperation() { return getFragmentType() == FragmentType.ASSIGNMENT; }
     public final boolean isFunctionCallOperation() { return getFragmentType() == FragmentType.FUNCTION_CALL; }
     public final boolean isNamespaceResolverOperation() { return getFragmentType() == FragmentType.NAMESPACE_RESOLVER; }
     public final boolean isArgumentList() { return getFragmentType() == FragmentType.ARGUMENT_LIST; }
     public final boolean isSeparator() { return getFragmentType() == FragmentType.SEPARATOR; }
     public final boolean isScope() { return getFragmentType() == FragmentType.SCOPE; }
+    
+    public boolean isAssignmentOperation() { return false; }
 }

@@ -16,23 +16,23 @@ import java.util.stream.Stream;
  */
 public class FunctionCall extends Statement
 {
-    private final Statement identifier;
+    private final ElementReference identifier;
     private final Statement[] args;
     
-    public FunctionCall(Fragment identifier, Fragment args) throws SyntaxException
+    public FunctionCall(Statement identifier, Fragment args) throws SyntaxException
     {
-        if(!identifier.isIdentifier() && identifier.isNamespaceResolverOperation())
+        if(!identifier.isElementReference())
             throw new SyntaxException("Can only call functions stored in valid identifiers.");
         if(!args.isArgumentList() || !((ArgumentList) args).isCallArguments())
             throw new SyntaxException("Expected valid arguments list after function call operator.");
         
-        this.identifier = (Identifier) identifier;
+        this.identifier = (ElementReference) identifier;
         this.args = ((ArgumentList) args).getArguments().stream()
                 .map(a -> a.getStatement())
                 .toArray(Statement[]::new);
     }
     
-    public final Statement getIdentifier() { return identifier; }
+    public final ElementReference getIdentifier() { return identifier; }
     
     public final int getArgumentCount() { return args.length; }
     public final Statement getArgument(int index) { return args[index]; }

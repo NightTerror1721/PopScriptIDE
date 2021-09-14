@@ -92,6 +92,6 @@ public final class Command extends Fragment
     
     public static final boolean hasArguments(Fragment frag)
     {
-        return is(frag, CommandId.DO, CommandId.IF, CommandId.EVERY, CommandId.MACRO);
+        return is(frag, CommandId.IF, CommandId.EVERY, CommandId.MACRO);
     }
 }

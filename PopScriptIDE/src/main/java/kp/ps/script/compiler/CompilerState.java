@@ -32,17 +32,22 @@ public final class CompilerState
     public final LocalElementsScope getLocalElements() { return localElements; }
     public final Namespace getNamespace() { return namespace; }
     
+    public final boolean hasLocalElements() { return localElements != null; }
+    
     public final LocalElementsScope pushLocalElements()
     {
-        return localElements = localElements.createChild();
+        return localElements = localElements == null
+                ? new LocalElementsScope(fieldsManager)
+                : localElements.createChild();
     }
     
     public final LocalElementsScope popLocalElements()
     {
-        LocalElementsScope old = localElements;
-        localElements = localElements.getParent();
         if(localElements == null)
             throw new IllegalStateException();
+        
+        LocalElementsScope old = localElements;
+        localElements = localElements.getParent();
         return old;
     }
     

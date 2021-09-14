@@ -7,7 +7,9 @@ package kp.ps.script.parser;
 
 import java.util.HashMap;
 import java.util.Objects;
+import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.types.TypeId;
+import kp.ps.script.compiler.types.TypeModifier;
 
 /**
  *
@@ -15,13 +17,63 @@ import kp.ps.script.compiler.types.TypeId;
  */
 public final class Type extends Fragment
 {
-    private final TypeId id;
+    private TypeId id;
+    private TypeModifier modifier;
     
-    private Type(TypeId id) { this.id = id; }
+    private Type(TypeModifier modifier, TypeId type)
+    {
+        this.id = type;
+        this.modifier = modifier;
+    }
     
-    public final TypeId getTypeId() { return id; }
+    public final TypeId getTypeId() { return id == null ? TypeId.INT : id; }
     
-    public String getName() { return getTypeId().getTypeName(); }
+    public final TypeModifier getModifier()
+    {
+        if(modifier != null)
+            return modifier;
+        
+        switch(getTypeId())
+        {
+            case INT: return TypeModifier.VAR;
+            default: return TypeModifier.INTERNAL;
+        }
+    }
+    
+    
+    public String getTypeName() { return getTypeId().getTypeName(); }
+    public String getModifierName() { return getModifier().getModifierName(); }
+    
+    public final void insertTypeId(TypeId type) throws CompilerException
+    {
+        if(id != null)
+            throw new CompilerException("Invalid type: '%s'.", (toString() + " " + type.getTypeName()));
+        
+        if(Objects.requireNonNull(type) != TypeId.INT && getModifier() != TypeModifier.INTERNAL)
+            throw new CompilerException("Invalid type modifier: '%s' cannot combine with '%s'.", type, getModifier());
+        
+        this.id = type;
+    }
+    
+    public final void insertModifier(TypeModifier mod) throws CompilerException
+    {
+        if(modifier != null)
+            throw new CompilerException("Invalid type: '%s'.", (toString() + " " + mod.getModifierName()));
+        
+        if(getTypeId() != TypeId.INT && Objects.requireNonNull(mod) != TypeModifier.INTERNAL)
+            throw new CompilerException("Invalid type modifier: '%s' cannot combine with '%s'.", getTypeId(), mod);
+        
+        this.modifier = mod;
+    }
+    
+    public final void insert(Type type) throws CompilerException
+    {
+        if(type.id == null)
+            insertModifier(type.modifier);
+        if(type.modifier == null)
+            insertTypeId(type.id);
+        throw new IllegalStateException();
+    }
     
     @Override
     public final FragmentType getFragmentType() { return FragmentType.TYPE; }
@@ -30,20 +82,23 @@ public final class Type extends Fragment
     public final boolean isStatement() { return false; }
     
     @Override
-    public final String toString() { return getName(); }
+    public final String toString()
+    {
+        TypeId type = getTypeId();
+        TypeModifier mod = getModifier();
+        
+        if(type == TypeId.INT)
+            return mod == TypeModifier.VAR
+                    ? type.getTypeName()
+                    : mod.getModifierName() + " " + type.getTypeName();
+        
+        return type.getTypeName();
+    }
     
-    public final boolean isInt() { return getTypeId() == TypeId.INT; }
-    public final boolean isState() { return getTypeId() == TypeId.STATE; }
-    public final boolean isAction() { return getTypeId() == TypeId.ACTION; }
-    public final boolean isTribe() { return getTypeId() == TypeId.TRIBE; }
-    public final boolean isAttackTarget() { return getTypeId() == TypeId.ATTACK_TARGET; }
-    public final boolean isAttackMode() { return getTypeId() == TypeId.ATTACK_MODE; }
-    public final boolean isGuardMode() { return getTypeId() == TypeId.GUARD_MODE; }
-    public final boolean isCountWildT() { return getTypeId() == TypeId.COUNT_WILD_T; }
-    
-    public final boolean equals(Type other) { return getTypeId() == other.getTypeId(); }
-    
-    public final boolean isFieldAssignable() { return getTypeId().isFieldAssignable(); }
+    public final boolean equals(Type other)
+    {
+        return getTypeId() == other.getTypeId() && getModifier() == other.getModifier();
+    }
     
     @Override
     public final boolean equals(Object o)
@@ -56,33 +111,44 @@ public final class Type extends Fragment
             return equals((Type) o);
         return false;
     }
-
+    
     @Override
     public final int hashCode()
     {
-        int hash = 7;
-        hash = 19 * hash + Objects.hashCode(getTypeId());
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.id);
+        hash = 97 * hash + Objects.hashCode(this.modifier);
         return hash;
     }
     
-    
-    
-    private static final HashMap<String, Type> BY_NAME = new HashMap<>();
-    private static final HashMap<TypeId, Type> BY_ID = new HashMap<>();
+    private static final HashMap<String, TypeId> TYPES = new HashMap<>();
+    private static final HashMap<String, TypeModifier> MODS = new HashMap<>();
     static
     {
-        for(TypeId id : TypeId.values())
-        {
-            Type t = new Type(id);
-            BY_NAME.put(t.getName(), t);
-            BY_ID.put(t.getTypeId(), t);
-        }
+        for(TypeId type : TypeId.values())
+            TYPES.put(type.getTypeName(), type);
+        
+        for(TypeModifier mod : TypeModifier.values())
+            MODS.put(mod.getModifierName(), mod);
     }
     
     
-    public static final Type fromName(String name) { return BY_NAME.getOrDefault(name, null); }
-    public static final Type fromId(TypeId id) { return BY_ID.getOrDefault(id, null); }
+    public static final Type fromName(String name)
+    {
+        TypeId type = TYPES.getOrDefault(name, null);
+        if(type != null)
+            return new Type(null, type);
+        
+        TypeModifier mod = MODS.getOrDefault(name, null);
+        if(mod != null)
+            return new Type(mod, null);
+        
+        return null;
+    }
+    
+    public static final Type fromId(TypeId id) { return new Type(null, id); }
+    
+    public static final Type fromModifier(TypeModifier mod) { return new Type(mod, null); }
     
     public static final boolean exists(String name) { return fromName(name) != null; }
-    public static final boolean exists(TypeId id) { return fromId(id) != null; }
 }

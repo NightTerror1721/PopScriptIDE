@@ -66,6 +66,9 @@ public final class Operation extends Statement
     
     @Override
     public final FragmentType getFragmentType() { return FragmentType.OPERATION; }
+    
+    @Override
+    public boolean isAssignmentOperation() { return operator.isAssignment(); }
 
     @Override
     public final String toString()
@@ -134,16 +137,6 @@ public final class Operation extends Statement
         if(!operator.isBinary())
             throw new IllegalArgumentException();
         
-        switch(operator.getOperatorId())
-        {
-            case ASSIGNATION:
-            case ASSIGNATION_ADD:
-            case ASSIGNATION_SUBTRACT:
-            case ASSIGNATION_MULTIPLY:
-            case ASSIGNATION_DIVIDE:
-                return assignment(operator, left, right);
-        }
-        
         Statement constResult = constantBinaryOperation(operator.getOperatorId(), left, right);
         if(constResult != null)
             return constResult;
@@ -154,11 +147,6 @@ public final class Operation extends Statement
     public static final Statement elvis(Statement condition, Statement ifIsTrue, Statement ifIsFalse)
     {
         return new Operation(Operator.fromId(OperatorId.ELVIS), condition, ifIsTrue, ifIsFalse);
-    }
-    
-    public static final Statement assignment(Operator operator, Statement left, Statement right) throws SyntaxException
-    {
-        return new Assignment(operator, left, right);
     }
     
     public static final Statement functionCall(Statement identifier, Fragment args) throws SyntaxException

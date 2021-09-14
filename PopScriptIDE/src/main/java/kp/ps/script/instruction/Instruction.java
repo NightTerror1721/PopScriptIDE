@@ -17,4 +17,5 @@ public abstract class Instruction
 {
     public abstract void normalCompile(CompilerState state, CodeManager code) throws CompilerException;
     public abstract void constCompile(CompilerState state) throws CompilerException;
+    public abstract void staticCompile(CompilerState state, CodeManager initCode, CodeManager mainCode) throws CompilerException;
 }

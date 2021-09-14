@@ -38,7 +38,7 @@ public abstract class StatementValue implements StatementTask
     
     public static final StatementValue decode(CompilerState state, Identifier identifier) throws CompilerException
     {
-        String name = identifier.getIdentifier();
+        String name = identifier.toString();
         if(state.getLocalElements().exists(name))
             return of(state.getLocalElements().get(name));
         if(state.getNamespace().existsField(name))

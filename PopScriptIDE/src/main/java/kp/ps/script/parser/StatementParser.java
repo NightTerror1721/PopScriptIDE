@@ -149,7 +149,7 @@ public final class StatementParser
         else if(operator.isAssignment())
         {
             Statement operand2 = packNextOperatorPart(it, operator);
-            operation = Operation.assignment(operator, operand1, operand2);
+            operation = Operation.binary(operator, operand1, operand2);
         }
         else if(operator.isFunctionCall())
         {

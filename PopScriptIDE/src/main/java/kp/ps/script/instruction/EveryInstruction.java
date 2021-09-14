@@ -10,11 +10,18 @@ import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
+import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.parser.ArgumentList;
+import kp.ps.script.parser.CodeParser;
+import kp.ps.script.parser.Command;
+import kp.ps.script.parser.CommandId;
 import kp.ps.script.parser.Fragment;
+import kp.ps.script.parser.FragmentList;
 import kp.ps.script.parser.Statement;
+import kp.ps.utils.CodeReader;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -83,4 +90,25 @@ public class EveryInstruction extends Instruction
         throw new CompilerException("Cannot use 'every' command in constant environment.");
     }
     
+    @Override
+    public void staticCompile(CompilerState state, CodeManager initCode, CodeManager mainCode) throws CompilerException
+    {
+        throw new CompilerException("'every' instruction cannot work in static environment (out of any code section).");
+    }
+    
+    public static final EveryInstruction parse(CodeReader reader, ErrorList errors) throws CompilerException
+    {
+        CodeParser parser = new CodeParser();
+        FragmentList frags = parser.parseCommandArgsAndScope(reader, Command.fromId(CommandId.EVERY), errors);
+        
+        ArgumentList args = frags.get(0);
+        Fragment scope = frags.get(1);
+        
+        if(args.size() < 1 || args.size() > 2)
+            throw new CompilerException("Malformed 'every' command. Expected 'every(const int period, const int delay = 0)'. But found %s", frags);
+        
+        if(args.size() == 1)
+            return new EveryInstruction(args.getArgument(0).getStatement(), null, scope);
+        return new EveryInstruction(args.getArgument(0).getStatement(), args.getArgument(1).getStatement(), scope);
+    }
 }

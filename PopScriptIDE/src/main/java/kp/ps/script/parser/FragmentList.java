@@ -42,7 +42,7 @@ public final class FragmentList implements Iterable<Fragment>
     public final boolean isEmpty() { return array.length <= 0; }
     public final int size() { return array.length; }
     
-    public final Fragment get(int index) { return array[index]; }
+    public final <T extends Fragment> T get(int index) { return (T) array[index]; }
     
     public final int indexOf(Fragment fragment)
     {

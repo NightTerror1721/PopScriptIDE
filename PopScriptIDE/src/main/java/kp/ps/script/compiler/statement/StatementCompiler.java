@@ -9,9 +9,19 @@ import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
+import kp.ps.script.compiler.LocalElementsScope.Element;
+import kp.ps.script.compiler.Macro;
+import kp.ps.script.compiler.functions.actions.InnerFunction;
+import kp.ps.script.compiler.functions.actions.InnerFunctionPool;
 import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
+import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.instruction.Instruction;
+import kp.ps.script.namespace.Namespace;
+import kp.ps.script.namespace.NamespaceField;
+import kp.ps.script.parser.ElementReference;
 import kp.ps.script.parser.Fragment;
+import kp.ps.script.parser.FunctionCall;
+import kp.ps.script.parser.NamespaceResolver;
 import kp.ps.script.parser.Operation;
 import kp.ps.script.parser.Operator;
 import kp.ps.script.parser.Scope;
@@ -122,6 +132,9 @@ public final class StatementCompiler
                     );
                 }
             } break;
+            
+            case FUNCTION_CALL:
+                return toTaskCall(state, (FunctionCall) statement);
         }
         
         throw new CompilerException("Unexpected token '%s'", statement);
@@ -217,5 +230,70 @@ public final class StatementCompiler
         }
         
         throw new IllegalStateException();
+    }
+    
+    private static StatementTask toTaskCall(CompilerState state, FunctionCall call) throws CompilerException
+    {
+        ElementReference ref = call.getIdentifier();
+        if(ref.isIdentifier())
+        {
+            String identifier = ref.toString();
+            if(state.getNamespace().existsMacro(identifier))
+                return toTaskCallAction(state, call, state.getNamespace().getMacro(identifier));
+            
+            if(state.getLocalElements().exists(identifier))
+            {
+                Element element = state.getLocalElements().get(identifier);
+                if(element.getType() == TypeId.ACTION)
+                    return toTaskCallAction(state, call, element.getTypedValue().getToken());
+            }
+            
+            if(state.getNamespace().existsField(identifier))
+            {
+                NamespaceField field = state.getNamespace().getField(identifier);
+                if(field.getType() == TypeId.ACTION)
+                    return toTaskCallAction(state, call, field.getTypedValue().getToken());
+            }
+            
+            throw new CompilerException("%s is not a valid callable element (can call only actions and macros).", ref);
+        }
+        else
+        {
+            NamespaceResolver resolver = ref.getNamespaceResolver();
+            Namespace namespace = resolver.findNamespace(state.getNamespace());
+            String identifier = resolver.getLastIdentifier().toString();
+            
+            if(namespace.existsMacro(identifier))
+                return toTaskCallAction(state, call, namespace.getMacro(identifier));
+            
+            if(namespace.existsField(identifier))
+            {
+                NamespaceField field = namespace.getField(identifier);
+                if(field.getType() == TypeId.ACTION)
+                    return toTaskCallAction(state, call, field.getTypedValue().getToken());
+            }
+            
+            throw new CompilerException("%s is not a valid callable element (can call only actions and macros).", ref);
+        }
+    }
+    
+    private static StatementTask toTaskCallAction(CompilerState state, FunctionCall call, ScriptToken action) throws CompilerException
+    {
+        if(!InnerFunctionPool.exists(action))
+            throw new CompilerException("%s is not a valid callable element (can call only actions and macros).", call.getIdentifier());
+        
+        InnerFunction function = InnerFunctionPool.get(action);
+        Statement[] sargs = call.getAllArguments();
+        StatementTask[] args = new StatementTask[sargs.length];
+        
+        for(int i = 0; i < args.length; ++i)
+            args[i] = toTask(state, sargs[i]);
+        
+        return StatementTaskUtils.actionCall(function, args);
+    }
+    
+    private static StatementTask toTaskCallAction(CompilerState state, FunctionCall call, Macro macro) throws CompilerException
+    {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

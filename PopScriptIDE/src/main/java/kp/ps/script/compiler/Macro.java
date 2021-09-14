@@ -45,7 +45,7 @@ public class Macro
                 throw new IllegalStateException();
             
             this.type = arg.getDeclarationType().getTypeId();
-            this.name = arg.getDeclarationIdentifier().getIdentifier();
+            this.name = arg.getDeclarationIdentifier().toString();
         }
         
         public final TypeId getType() { return type; }

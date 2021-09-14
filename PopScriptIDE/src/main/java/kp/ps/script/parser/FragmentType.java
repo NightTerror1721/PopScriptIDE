@@ -17,7 +17,6 @@ public enum FragmentType
     LITERAL,
     OPERATOR,
     OPERATION,
-    ASSIGNMENT,
     FUNCTION_CALL,
     NAMESPACE_RESOLVER,
     ARGUMENT_LIST,

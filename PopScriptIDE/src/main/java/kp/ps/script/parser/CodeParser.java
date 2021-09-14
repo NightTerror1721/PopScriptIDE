@@ -28,8 +28,23 @@ public final class CodeParser
     {
         accumulated = new CodeQueue(last);
     }
+    public CodeParser() { this(null); }
     
     public final Fragment parseFragment(CodeReader source, boolean isFinishValid, ErrorList errors) throws CompilerException
+    {
+        Fragment frag = parseFragment0(source, isFinishValid, errors);
+        if(frag.isType())
+        {
+            int index = source.getCurrentIndex();
+            Fragment nextType = parseFragment0(source, isFinishValid, errors);
+            if(nextType.isType())
+                ((Type) frag).insert((Type) nextType);
+            else source.setIndex(index);
+        }
+        return frag;
+    }
+    
+    private Fragment parseFragment0(CodeReader source, boolean isFinishValid, ErrorList errors) throws CompilerException
     {
         if(!accumulated.isEmpty())
             return accumulated.dequeue();
@@ -68,7 +83,7 @@ public final class CodeParser
                         }
                         else if(accumulated.last().isCommand() && Command.hasArguments(accumulated.last())) //Command arguments
                             return accumulated.enqret(ArgumentList.argsToCall(list));
-                        else if(accumulated.last().isCommand() && Command.is(accumulated.last(), CommandId.MACRO)) //Macro arguments
+                        else if(accumulated.isMacroDeclaration()) //Macro arguments
                             return accumulated.enqret(ArgumentList.argsToDeclaration(list));
                         else //Arguments
                         {
@@ -401,7 +416,7 @@ public final class CodeParser
         return StatementParser.parse(list);
     }
     
-    public final FragmentList parseInlineInstructionAsList(CodeReader source, Command last, ErrorList errors) throws CompilerException
+    public final FragmentList parseInlineInstructionAsList(CodeReader source, Fragment last, ErrorList errors) throws CompilerException
     {
         LinkedList<Fragment> frags = new LinkedList<>();
         Fragment frag;
@@ -428,11 +443,11 @@ public final class CodeParser
             throw new CompilerException("Expected empty instruction after " + last + " command");
     }
     
-    /*public final FragmentList parseUntilScopeAsList(CodeReader source, Command last, ErrorList errors) throws CompilerException
+    public final FragmentList parseUntilScopeAsList(CodeReader source, Command last, ErrorList errors) throws CompilerException
     {
         LinkedList<Fragment> frags = new LinkedList<>();
         Fragment frag;
-        int firstLine = source.getCurrentLine();
+        //int firstLine = source.getCurrentLine();
         accumulated.setLast(frags.isEmpty() ? last : frags.getLast());
         while((frag = parseFragment(source, true, errors)) != null)
         {
@@ -443,9 +458,9 @@ public final class CodeParser
                 break;
         }
         return frags.isEmpty()
-                ? FragmentList.empty(firstLine)
-                : new FragmentList(firstLine, frags);
-    }*/
+                ? new FragmentList()
+                : new FragmentList(frags);
+    }
     
     public final FragmentList parseUntilScopeOrInlineAsList(CodeReader source, Command last, ErrorList errors) throws CompilerException
     {
@@ -487,7 +502,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(source, errors, true));
+        scope = new Scope(InstructionParser.parse(source, true, errors));
         return new FragmentList(args, scope);
     }
     
@@ -506,7 +521,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(source, errors, true));
+        scope = new Scope(InstructionParser.parse(source, true, errors));
         return new FragmentList(scope);
     }
     
@@ -529,7 +544,7 @@ public final class CodeParser
     
     private Scope parseScope(CodeReader source, ErrorList errors) throws CompilerException
     {
-        List<Instruction> instrs = InstructionParser.parse(source, errors, false);
+        List<Instruction> instrs = InstructionParser.parse(source, false, errors);
         return new Scope(instrs);
     }
     
@@ -634,6 +649,7 @@ public final class CodeParser
         {
             if(isEmpty())
                 throw new IllegalStateException();
+            
             String str;
             switch(str = sb.toString())
             {
@@ -641,9 +657,15 @@ public final class CodeParser
                 case "1": return Literal.ONE;
                 case "-1": return Literal.MINUSONE;
             }
+            
             Command cmd = Command.fromName(str);
             if(cmd != null)
                 return cmd;
+            
+            Type type = Type.fromName(str);
+            if(type != null)
+                return type;
+            
             Fragment frag = Literal.parse(str);
             if(frag != null)
                 return frag;
@@ -679,6 +701,22 @@ public final class CodeParser
             Fragment first = list.removeFirst();
             list.add(frag);
             return first;
+        }
+        
+        public final boolean isMacroDeclaration()
+        {
+            Fragment prev1 = last();
+            if(prev1 == null || (!prev1.isIdentifier() && !prev1.isNamespaceResolverOperation()))
+                return false;
+            
+            if(list.isEmpty())
+                return false;
+            
+            else if(list.size() == 1)
+                return last != null && Command.is(last, CommandId.MACRO);
+            
+            Fragment prev2 = list.get(list.size() - 2);
+            return prev2 != null && Command.is(prev2, CommandId.MACRO);
         }
     }
 }
