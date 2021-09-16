@@ -90,7 +90,19 @@ public class ConditionalInstruction extends Instruction
     }
     
     @Override
-    public final boolean hasYieldInstruction() { return false; }
+    public final boolean hasYieldInstruction()
+    {
+        for(Instruction inst : action.getInstructions())
+            if(inst.hasYieldInstruction())
+                return true;
+        
+        if(elseAction != null)
+            for(Instruction inst : elseAction.getInstructions())
+                if(inst.hasYieldInstruction())
+                    return true;
+        
+        return false;
+    }
     
     public static final ConditionalInstruction parse(
             CodeReader reader,

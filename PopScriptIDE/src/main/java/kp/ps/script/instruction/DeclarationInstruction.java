@@ -46,7 +46,7 @@ public class DeclarationInstruction extends Instruction
         {
             if(statements[i] == null)
                 throw new IllegalStateException();
-            if((!statements[i].isAssignmentOperation() && statements[i].isIdentifier()))
+            if((!statements[i].isAssignmentOperation() && !statements[i].isIdentifier()))
                 throw new CompilerException("Expected valid identifier or assignation in declaration statement. But found %s", statements[i]);
         }
         
@@ -59,7 +59,7 @@ public class DeclarationInstruction extends Instruction
         for(Statement statement : statements)
         {
             if(statement.isIdentifier())
-                createElement(state, statement, true);
+                createElement(state, statement, false);
             else
             {
                 Operation op = (Operation) statement;
@@ -93,7 +93,7 @@ public class DeclarationInstruction extends Instruction
         for(Statement statement : statements)
         {
             if(statement.isIdentifier())
-                createElement(state, statement, true);
+                createElement(state, statement, false);
             else
             {
                 Operation op = (Operation) statement;

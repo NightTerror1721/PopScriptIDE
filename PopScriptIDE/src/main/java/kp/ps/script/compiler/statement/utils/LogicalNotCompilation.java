@@ -51,6 +51,7 @@ public class LogicalNotCompilation implements StatementTask
             code.insertTokenCode(ScriptToken.BEGIN);
             StatementTaskUtils.assignation(retloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
             code.insertTokenCode(ScriptToken.END);
+            code.insertTokenCode(ScriptToken.ENDIF);
             
             return retloc;
         }

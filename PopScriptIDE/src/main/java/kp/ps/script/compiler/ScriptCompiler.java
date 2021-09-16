@@ -24,39 +24,46 @@ import kp.ps.utils.ints.Int32;
  *
  * @author Marc
  */
-public class Compiler
+public class ScriptCompiler
 {
-    private Compiler() {}
+    private ScriptCompiler() {}
     
     public static final Script compile(Path path, ErrorList errors) throws IOException
     {
         try(InputStream input = Files.newInputStream(path))
         {
-            return compile(input, errors);
+            return compile(new CodeReader(input), errors, path);
         }
     }
     
-    public static final Script compile(String code, ErrorList errors)
+    /*public static final Script compile(String code, ErrorList errors)
     {
-        return compile(new CodeReader(code), errors);
+        return compile(new CodeReader(code), errors, null);
     }
     
     public static final Script compile(InputStream input, ErrorList errors)
     {
-        return compile(new CodeReader(input), errors);
-    }
+        return compile(new CodeReader(input), errors, null);
+    }*/
     
-    private static Script compile(CodeReader source, ErrorList errors)
+    private static Script compile(CodeReader source, ErrorList errors, Path mainSource)
     {
         if(errors == null)
             errors = new ErrorList();
+        
+        mainSource = mainSource.toAbsolutePath();
         
         CompilerState state = new CompilerState(errors);
         CodeManager initCode = new CodeManager();
         CodeManager mainCode = new CodeManager();
         
+        try { state.pushSourceFile(mainSource); }
+        catch(CompilerException ex) { throw new IllegalStateException(ex); }
+        
         List<Instruction> insts = InstructionParser.parse(state, source, false, errors);
         InstructionCompiler.staticCompile(state, initCode, mainCode, insts);
+        
+        state.popSourceFile();
         
         CodeManager code = new CodeManager();
         try
@@ -78,7 +85,7 @@ public class Compiler
         }
         catch(CompilerException ex)
         {
-            errors.addError(0, source.getCurrentLine(), ex);
+            errors.addError(mainSource, 0, source.getCurrentLine(), ex);
         }
         
         Script script = new Script();
@@ -112,5 +119,6 @@ public class Compiler
         code.insertTokenCode(ScriptToken.BEGIN);
         code.insertCode(mainCode);
         code.insertTokenCode(ScriptToken.END);
+        code.insertTokenCode(ScriptToken.ENDIF);
     }
 }

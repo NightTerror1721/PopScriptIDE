@@ -21,5 +21,6 @@ public enum FragmentType
     NAMESPACE_RESOLVER,
     ARGUMENT_LIST,
     SEPARATOR,
+    STRING_LITERAL,
     SCOPE
 }

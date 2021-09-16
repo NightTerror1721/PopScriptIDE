@@ -108,6 +108,7 @@ public class LocalElementsScope
             throw new CompilerException("Duplicated identifier '%s'.", identifier);
         
         VariableElement elem = new VariableElement(identifier);
+        //elem.getVariableIndex(true);
         elements.put(identifier, elem);
         return elem;
     }

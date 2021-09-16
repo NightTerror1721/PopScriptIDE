@@ -5,6 +5,7 @@
  */
 package kp.ps.script.compiler;
 
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -25,6 +26,8 @@ public final class CompilerState
     private Namespace namespace = Namespace.createRoot();
     private final HashSet<Macro> invokedMacros = new HashSet<>();
     private final LinkedList<Pair<Macro, MemoryAddress>> invokedMacrosStack = new LinkedList<>();
+    private final HashSet<Path> importedSources = new HashSet<>();
+    private final LinkedList<Path> importedSourcesStack = new LinkedList<>();
     private final ErrorList errors;
     
     
@@ -109,6 +112,30 @@ public final class CompilerState
     }
     
     public final boolean isOnInvocation() { return !invokedMacros.isEmpty(); }
+    
+    public final void pushSourceFile(Path path) throws CompilerException
+    {
+        Path absolutePath = path.toAbsolutePath();
+        if(importedSources.contains(absolutePath))
+            throw new CompilerException("File '%s' already imported. Recursion is illegal.");
+        
+        importedSources.add(absolutePath);
+        importedSourcesStack.push(absolutePath);
+    }
+    
+    public final void popSourceFile()
+    {
+        if(importedSourcesStack.isEmpty())
+            throw new IllegalStateException();
+        importedSourcesStack.pop();
+    }
+    
+    public final Path getCurrentSourceFile()
+    {
+        if(importedSourcesStack.isEmpty())
+            throw new IllegalStateException();
+        return importedSourcesStack.peek();
+    }
     
     
     public final Script compileScript(CodeManager code)

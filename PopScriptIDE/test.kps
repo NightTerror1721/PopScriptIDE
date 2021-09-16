@@ -44,32 +44,60 @@ namespace Tribes
 	}
 }
 
+import "utils.kps";
+
 const int TRUE = 1;
 const int FALSE = 0;
 
-macro max(int x, int y)
+/*init
 {
-	yield x > y ? x : y;
-}
+	int attack_var = 0;
+	SetAttackVariable(attack_var);
+}*/
 
+//main prove
 main
 {
-	const int VERSION = 1;
-	
-	int value = VERSION;
-	int val2 = value + (50 * value + VERSION * 2);
-	
-	int huts = Tribes.self.buildings.small_huts;
-	
-	int idx = 0;
-	if(huts > 2 && (value + 3 < 10 || value - val2 == 0))
+	int attack_var;
+	if(GAME_TURN == 0)
 	{
-		TrainPeopleNow(3 * (idx + 2), WARRIOR);
-		idx++;
+		//attack_var = 0;
+		SetAttackVariable(attack_var);
 	}
-	
-	int test = huts == 2 ? value + 2 : WARRIOR;
-	
-	int val = max(huts, 10);
-	val = max(10, 150);
+	else
+	{
+		const int VERSION = 1;
+		
+		int value = VERSION;
+		int val2 = value + (50 * value + VERSION * 2);
+		
+		int huts = Tribes.self.buildings.small_huts;
+		
+		int idx = 0;
+		if(huts > 2 && (value + 3 < 10 || value - val2 == 0))
+		{
+			TrainPeopleNow(3 * (idx + 2), WARRIOR);
+			idx++;
+		}
+		
+		int test = huts == 2 ? value + 2 : WARRIOR;
+		
+		int val = max(huts, 10);
+		val = max(10, 150);
+		
+		val = clamp(value, 10, 50);
+		val = clamp(10, 50, 150);
+		
+		int x = 0;
+		set(x, add(multiply(val, val2), 16));
+		
+		x = --idx;
+		x += idx;
+		
+		
+		if(IsGameTurn(256))
+		{
+			val = 512;
+		}
+	}
 }

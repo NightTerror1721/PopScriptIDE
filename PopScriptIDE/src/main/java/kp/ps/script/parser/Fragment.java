@@ -35,6 +35,7 @@ public abstract class Fragment
     public final boolean isNamespaceResolverOperation() { return getFragmentType() == FragmentType.NAMESPACE_RESOLVER; }
     public final boolean isArgumentList() { return getFragmentType() == FragmentType.ARGUMENT_LIST; }
     public final boolean isSeparator() { return getFragmentType() == FragmentType.SEPARATOR; }
+    public final boolean isStringLiteral() { return getFragmentType() == FragmentType.STRING_LITERAL; }
     public final boolean isScope() { return getFragmentType() == FragmentType.SCOPE; }
     
     public boolean isAssignmentOperation() { return false; }

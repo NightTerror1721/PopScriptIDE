@@ -26,7 +26,7 @@ public class Main
             System.out.println(func);
         
         ErrorList errors = new ErrorList();
-        Script script = kp.ps.script.compiler.Compiler.compile(Path.of("test.kps"), errors);
+        Script script = kp.ps.script.compiler.ScriptCompiler.compile(Path.of("test.kps"), errors);
         
         System.out.println("\nErrors:");
         for(ErrorList.ErrorEntry error : errors)

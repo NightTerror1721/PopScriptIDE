@@ -16,6 +16,7 @@ import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.instruction.Instruction;
 import kp.ps.script.instruction.InstructionParser;
 import kp.ps.utils.CodeReader;
+import kp.ps.utils.HexadecimalDecoder;
 
 /**
  *
@@ -120,9 +121,43 @@ public final class CodeParser
                     
                     case '}': throw new CompilerException("Unexpected end of scope parenthesis '}'");
                     
-                    case '\'':
-                    case '\"': 
-                        throw new CompilerException("Invalid symbol " + c);
+                    case '\"': {
+                        builder.flush();
+
+                        final char base = c;
+                        builder.disableFinish();
+                        for(;;)
+                        {
+                            c = source.next();
+                            if(c == base)
+                                break;
+                            if(c == '\\')
+                            {
+                                c = source.next();
+                                switch(c)
+                                {
+                                    case 'n': builder.append('\n'); break;
+                                    case 'r': builder.append('\r'); break;
+                                    case 't': builder.append('\t'); break;
+                                    case 'u': {
+                                        if(!source.canPeek(4))
+                                            throw new CompilerException("Invalid unicode scape");
+                                        String hexCode = new String(source.nextArray(4));
+                                        builder.append(HexadecimalDecoder.decodeUnicode(hexCode));
+                                    } break;
+                                    case '\\': builder.append('\\'); break;
+                                    case '\'': builder.append('\''); break;
+                                    case '\"': builder.append('\"'); break;
+                                }
+                                continue;
+                            }
+                            builder.append(c);
+                        }
+                        builder.enableFinish();
+                        String value = builder.toString();
+                        builder.clear();
+                        return accumulated.enqret(new StringLiteral(value));
+                    }
                     
                     case ',': {
                         builder.flush();
@@ -345,7 +380,7 @@ public final class CodeParser
                     }
                     
                     case '/': {
-                        builder.flush();
+                        boolean flushResult = builder.flush();
                         if(!source.canPeek(0))
                             throw new CompilerException("Unexpected character: /");
                         c = source.next();
@@ -359,6 +394,16 @@ public final class CodeParser
                                 if(!source.canPeek(0))
                                     throw new CompilerException("Unexpected character: /");
                                 accumulated.enqueue(Operator.fromId(OperatorId.ASSIGNATION_DIVIDE));
+                            } break;
+                            case '/': {
+                                source.seekOrEnd('\n');
+                                if(!flushResult)
+                                    break main_switch;
+                            } break;
+                            case '*': {
+                                source.seekOrEnd('*', '/');
+                                if(!flushResult)
+                                    break main_switch;
                             } break;
                         }
                         return accumulated.dequeue();
@@ -557,24 +602,6 @@ public final class CodeParser
     {
         List<Instruction> instrs = InstructionParser.parse(state, source, false, errors);
         return new Scope(instrs);
-    }
-    
-    private static void skipUntil(CodeReader source, char end, boolean isEndOfFileValid) throws EOFException
-    {
-        try
-        {
-            for(;;)
-            {
-                char c = source.next();
-                if(c == end)
-                    return;
-            }
-        }
-        catch(EOFException ex)
-        {
-            if(!isEndOfFileValid)
-                throw ex;
-        }
     }
     
     private static CodeReader extractScope(CodeReader source, char cstart, char cend) throws CompilerException

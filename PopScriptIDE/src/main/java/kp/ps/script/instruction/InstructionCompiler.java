@@ -28,7 +28,7 @@ public class InstructionCompiler
             }
             catch(CompilerException ex)
             {
-                state.getErrors().addError(inst.getFirstLine(), inst.getFirstLine(), ex);
+                state.getErrors().addError(state.getCurrentSourceFile(), inst.getFirstLine(), inst.getFirstLine(), ex);
             }
         }
     }
@@ -43,7 +43,7 @@ public class InstructionCompiler
             }
             catch(CompilerException ex)
             {
-                state.getErrors().addError(inst.getFirstLine(), inst.getFirstLine(), ex);
+                state.getErrors().addError(state.getCurrentSourceFile(), inst.getFirstLine(), inst.getFirstLine(), ex);
             }
         }
     }
@@ -62,7 +62,7 @@ public class InstructionCompiler
             }
             catch(CompilerException ex)
             {
-                state.getErrors().addError(inst.getFirstLine(), inst.getFirstLine(), ex);
+                state.getErrors().addError(state.getCurrentSourceFile(), inst.getFirstLine(), inst.getFirstLine(), ex);
             }
         }
     }

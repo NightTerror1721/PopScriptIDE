@@ -5,6 +5,7 @@
  */
 package kp.ps.script.compiler;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -20,9 +21,9 @@ public final class ErrorList implements Iterable<ErrorList.ErrorEntry>
 {
     private final LinkedList<ErrorEntry> errors = new LinkedList<>();
     
-    public final ErrorEntry addError(int startLine, int endLine, CompilerException cause)
+    public final ErrorEntry addError(Path file, int startLine, int endLine, CompilerException cause)
     {
-        ErrorEntry e = new ErrorEntry(startLine, endLine, cause);
+        ErrorEntry e = new ErrorEntry(file, startLine, endLine, cause);
         errors.add(e);
         return e;
     }
@@ -38,17 +39,20 @@ public final class ErrorList implements Iterable<ErrorList.ErrorEntry>
     
     public static final class ErrorEntry
     {
+        private final Path file;
         private final int startLine;
         private final int endLine;
         private final CompilerException cause;
         
-        private ErrorEntry(int startLine, int endLine, CompilerException cause)
+        private ErrorEntry(Path file, int startLine, int endLine, CompilerException cause)
         {
+            this.file = Objects.requireNonNull(file);
             this.startLine = startLine;
             this.endLine = endLine;
             this.cause = Objects.requireNonNull(cause);
         }
         
+        public final Path getFilePath() { return file; }
         public final int getStartLine() { return startLine; }
         public final int getEndLine() { return endLine; }
         public final CompilerException getCause() { return cause; }

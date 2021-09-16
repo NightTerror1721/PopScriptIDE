@@ -1,0 +1,34 @@
+
+macro max(int x, int y)
+{
+	yield x > y ? x : y;
+}
+
+macro min(int x, int y)
+{
+	yield x < y ? x : y;
+}
+
+macro clamp(int value, int minValue, int maxValue)
+{
+	if(value > minValue)
+	{
+		if(value < maxValue)
+			yield value;
+		else yield maxValue;
+	}
+	else yield minValue;
+}
+
+macro add(int x, int y) { yield x + y; }
+macro subtract(int x, int y) { yield x - y; }
+macro multiply(int x, int y) { yield x * y; }
+macro divide(int x, int y) { yield x / y; }
+macro set(var variable, int value) { variable = value; }
+
+macro IsGameTurn(int turn)
+{
+	yield GAME_TURN >= turn;
+}
+
+

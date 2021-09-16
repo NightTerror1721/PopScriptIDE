@@ -80,7 +80,7 @@ public final class InstructionParser
         catch(CompilerException ex)
         {
             int lastLine = source.getCurrentLine();
-            errors.addError(firstLine, lastLine, ex);
+            errors.addError(state.getCurrentSourceFile(), firstLine, lastLine, ex);
             return null;
         }
     }
@@ -118,6 +118,9 @@ public final class InstructionParser
                 
             case YIELD:
                 return YieldInstruction.parse(source, parser, errors);
+                
+            case IMPORT:
+                return ImportInstruction.parse(source, parser, errors);
         }
         
         throw new CompilerException("Unimpletented command '%s'.", command);

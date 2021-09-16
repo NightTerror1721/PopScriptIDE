@@ -101,7 +101,14 @@ public class EveryInstruction extends Instruction
     }
     
     @Override
-    public final boolean hasYieldInstruction() { return false; }
+    public final boolean hasYieldInstruction()
+    {
+        for(Instruction inst : block.getInstructions())
+            if(inst.hasYieldInstruction())
+                return true;
+        
+        return false;
+    }
     
     public static final EveryInstruction parse(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
     {
