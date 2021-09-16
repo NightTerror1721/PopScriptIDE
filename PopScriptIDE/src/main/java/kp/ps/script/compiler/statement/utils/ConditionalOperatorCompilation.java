@@ -85,22 +85,19 @@ public class ConditionalOperatorCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, prev))
-        {
-            MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
-            MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
-            
-            if(left.isConstant() && right.isConstant())
-                return ConditionalState.evaluate(constOperation(left.getConstantValue(), right.getConstantValue()));
-            
-            cond.insertTokenCode(mode.token);
-            left.compileRead(state, cond);
-            right.compileRead(state, cond);
-            
-            return ConditionalState.UNKNOWN;
-        }
+        MemoryAddress left = temps.normalCompileWithTemp(leftOperand);
+        MemoryAddress right = temps.normalCompileWithTemp(rightOperand);
+
+        if(left.isConstant() && right.isConstant())
+            return ConditionalState.evaluate(constOperation(left.getConstantValue(), right.getConstantValue()));
+
+        cond.insertTokenCode(mode.token);
+        left.compileRead(state, cond);
+        right.compileRead(state, cond);
+
+        return ConditionalState.UNKNOWN;
     }
     
     private int constOperation(int left, int right)

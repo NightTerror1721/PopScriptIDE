@@ -5,7 +5,6 @@
  */
 package kp.ps.utils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -275,7 +274,10 @@ public final class IOUtils
     public static final void readFully(InputStream is, byte[] buffer) throws IOException { readFully(is, buffer, 0, buffer.length); }
     public static final byte[] readFully(InputStream is, int bufLen) throws IOException
     {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream(bufLen);
+        byte[] buf = new byte[bufLen];
+        readFully(is, buf, 0, buf.length);
+        return buf;
+        /*ByteArrayOutputStream bout = new ByteArrayOutputStream(bufLen);
         byte[] buf = new byte[bufLen];
         int count = is.read(buf);         
         while (count > 0)
@@ -283,7 +285,7 @@ public final class IOUtils
             bout.write(buf, 0, count);
             count = is.read(buf);
         }
-        return bout.toByteArray();
+        return bout.toByteArray();*/
     }
     
     public final static long skip(InputStream is, long len) throws IOException { return is.skip(len); }

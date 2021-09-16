@@ -69,7 +69,7 @@ public final class Command extends Fragment
     }
     
     public static final Command fromId(CommandId id) { return BY_ID.getOrDefault(id, null); }
-    public static final Command fromName(String name) { return BY_ID.getOrDefault(name, null); }
+    public static final Command fromName(String name) { return BY_NAME.getOrDefault(name, null); }
     
     public static final boolean exists(CommandId id) { return fromId(id) != null; }
     public static final boolean exists(String name) { return fromName(name) != null; }

@@ -55,4 +55,12 @@ final class ConstNamespaceField extends NamespaceField
             throw new CompilerException("const int %s value already initiated", getName());
         this.value = Objects.requireNonNull(value);
     }
+    
+    @Override
+    public final String toString()
+    {
+        if(value == null)
+            return "const int " + getName();
+        return "const int " + getName() + " = " + value;
+    }
 }

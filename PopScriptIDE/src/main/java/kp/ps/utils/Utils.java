@@ -5,6 +5,7 @@
  */
 package kp.ps.utils;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -65,5 +66,18 @@ public final class Utils
     public static final <L, R> Iterable<Pair<L, R>> iterableOf(Iterable<L> left, Iterable<R> right)
     {
         return () -> new ZippedIterator(left.iterator(), right.iterator());
+    }
+    
+    public static final String stringDup(char character, int count)
+    {
+        if(count < 1)
+            return "";
+        
+        if(count == 1)
+            return Character.toString(character);
+        
+        char[] buf = new char[count];
+        Arrays.fill(buf, character);
+        return new String(buf);
     }
 }

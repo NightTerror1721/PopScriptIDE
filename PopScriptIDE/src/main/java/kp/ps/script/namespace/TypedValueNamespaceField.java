@@ -58,4 +58,12 @@ final class TypedValueNamespaceField extends NamespaceField
         
         this.value = value;
     }
+    
+    @Override
+    public final String toString()
+    {
+        if(value == null)
+            return type.getTypeName() + " " + getName();
+        return type.getTypeName() + " " + getName() + " = " + value.getName();
+    }
 }

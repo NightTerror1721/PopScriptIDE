@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import kp.ps.script.compiler.CompilerException;
+import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.instruction.Instruction;
 import kp.ps.script.instruction.InstructionParser;
@@ -23,23 +24,31 @@ import kp.ps.utils.CodeReader;
 public final class CodeParser
 {
     private final CodeQueue accumulated;
+    private final CompilerState state;
     
-    public CodeParser(Fragment last)
+    public CodeParser(CompilerState state, Fragment last)
     {
-        accumulated = new CodeQueue(last);
+        this.accumulated = new CodeQueue(last);
+        this.state = Objects.requireNonNull(state);
     }
-    public CodeParser() { this(null); }
+    public CodeParser(CompilerState state) { this(state, null); }
     
     public final Fragment parseFragment(CodeReader source, boolean isFinishValid, ErrorList errors) throws CompilerException
     {
         Fragment frag = parseFragment0(source, isFinishValid, errors);
-        if(frag.isType())
+        if(frag != null && frag.isType())
         {
-            int index = source.getCurrentIndex();
+            int lastIndex = source.getCurrentIndex();
+            LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
             Fragment nextType = parseFragment0(source, isFinishValid, errors);
             if(nextType.isType())
                 ((Type) frag).insert((Type) nextType);
-            else source.setIndex(index);
+            else
+            {
+                source.setIndex(lastIndex);
+                accumulated.list.clear();
+                accumulated.list = old;
+            }
         }
         return frag;
     }
@@ -76,7 +85,7 @@ public final class CodeParser
                         builder.flush();
                         CodeReader scopeSource = extractScope(source, '(', ')');
                         FragmentList list = parseSubStatement(scopeSource, errors);
-                        if(!accumulated.hasLast() || Command.is(accumulated.last(), CommandId.RETURN) ||
+                        if(!accumulated.hasLast() || Command.is(accumulated.last(), CommandId.YIELD) ||
                                 (!accumulated.last().isStatement() && !accumulated.last().isCommand())) //Parenthesis
                         {
                             return accumulated.enqret(StatementParser.parse(list));
@@ -97,7 +106,8 @@ public final class CodeParser
                     case '{': {
                         builder.flush();
                         CodeReader scopeSource = extractScope(source, '{', '}');
-                        if(!accumulated.hasLast() || !accumulated.last().isStatement())
+                        if(!accumulated.hasLast() || (!accumulated.last().isStatement() && !accumulated.last().isCommand() &&
+                                !accumulated.last().isArgumentList()))
                         {
                             throw new CompilerException("Unexpected start of scope '{'");
                         }
@@ -483,7 +493,8 @@ public final class CodeParser
                 : new FragmentList(frags);
     }
     
-    public final FragmentList parseCommandArgsAndScope(CodeReader source, Command last, ErrorList errors) throws CompilerException
+    public final FragmentList parseCommandArgsAndScope(CodeReader source, Command last, ErrorList errors)
+            throws CompilerException
     {
         //int firstLine = source.getCurrentLine();
         accumulated.setLast(last);
@@ -502,7 +513,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(source, true, errors));
+        scope = new Scope(InstructionParser.parse(state, source, true, errors));
         return new FragmentList(args, scope);
     }
     
@@ -521,7 +532,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(source, true, errors));
+        scope = new Scope(InstructionParser.parse(state, source, true, errors));
         return new FragmentList(scope);
     }
     
@@ -530,7 +541,7 @@ public final class CodeParser
         LinkedList<Fragment> frags = new LinkedList<>();
         Fragment frag;
         //int firstLine = source.getCurrentLine();
-        CodeParser parser = new CodeParser(null);
+        CodeParser parser = new CodeParser(state);
         while((frag = parser.parseFragment(source, true, errors)) != null)
         {
             if(frag != null)
@@ -544,7 +555,7 @@ public final class CodeParser
     
     private Scope parseScope(CodeReader source, ErrorList errors) throws CompilerException
     {
-        List<Instruction> instrs = InstructionParser.parse(source, false, errors);
+        List<Instruction> instrs = InstructionParser.parse(state, source, false, errors);
         return new Scope(instrs);
     }
     

@@ -55,4 +55,12 @@ final class InternalNamespaceField extends NamespaceField
             throw new CompilerException("internal int %s value already initiated", getName());
         this.internal = Objects.requireNonNull(value);
     }
+    
+    @Override
+    public final String toString()
+    {
+        if(internal == null)
+            return "internal int " + getName();
+        return "internal int " + getName() + " = " + internal.getInternalName();
+    }
 }

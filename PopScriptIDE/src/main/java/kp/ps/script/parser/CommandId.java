@@ -19,7 +19,7 @@ public enum CommandId
     INIT("init"),
     IMPORT("import"),
     NAMESPACE("namespace"),
-    RETURN("return");
+    YIELD("yield");
     
     private final String name;
     

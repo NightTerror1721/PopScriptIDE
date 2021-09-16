@@ -32,46 +32,47 @@ public class AssignmentCompilation implements StatementTask
     @Override
     public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, code))
+        MemoryAddress left = target.normalCompile(state, code);
+        if(!left.canWrite())
+            throw new CompilerException("Required valid variable or non constant internal to store any value in normal environment.");
+
+        MemoryAddress right = value.normalCompile(state, code, left);
+
+        if(!left.equals(right))
         {
-            MemoryAddress left = target.normalCompile(state, code);
-            MemoryAddress right = temps.normalCompileWithTemp(value);
-
-            if(left.canWrite())
-                throw new CompilerException("Required valid variable or non constant internal to store any value in normal environment.");
-
             code.insertTokenCode(ScriptToken.SET);
             left.compileWrite(state, code);
             right.compileRead(state, code);
-
-            if(!retloc.isInvalid())
-            {
-                code.insertTokenCode(ScriptToken.SET);
-                retloc.compileWrite(state, code);
-                left.compileRead(state, code);
-                return retloc;
-            }
-            else return left;
         }
+
+        if(!retloc.isInvalid())
+        {
+            code.insertTokenCode(ScriptToken.SET);
+            retloc.compileWrite(state, code);
+            left.compileRead(state, code);
+            return retloc;
+        }
+        else return left;
     }
     
     @Override
     public final MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, code))
+        MemoryAddress left = target.varCompile(state, code);
+        if(!left.canWrite())
+            throw new CompilerException("Required valid variable or non constant internal to store any value in normal environment.");
+
+        //MemoryAddress right = temps.normalCompileWithTemp(value);
+        MemoryAddress right = value.normalCompile(state, code, left);
+
+        if(!left.equals(right))
         {
-            MemoryAddress left = target.varCompile(state, code);
-            MemoryAddress right = temps.normalCompileWithTemp(value);
-
-            if(left.canWrite())
-                throw new CompilerException("Required valid variable or non constant internal to store any value in normal environment.");
-
             code.insertTokenCode(ScriptToken.SET);
             left.compileWrite(state, code);
             right.compileRead(state, code);
-
-            return left;
         }
+
+        return left;
     }
 
     @Override
@@ -106,9 +107,9 @@ public class AssignmentCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        return normalCompile(state, prev).conditionalCompile(state, prev, cond);
+        return normalCompile(state, prev).conditionalCompile(state, prev, cond, temps);
     }
     
 }

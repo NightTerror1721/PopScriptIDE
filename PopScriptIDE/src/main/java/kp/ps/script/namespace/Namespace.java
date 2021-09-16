@@ -10,8 +10,8 @@ import java.util.Objects;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.Macro;
 import kp.ps.script.compiler.TypedValue;
+import kp.ps.script.compiler.functions.Macro;
 import kp.ps.script.compiler.types.TypeId;
 
 /**
@@ -81,16 +81,28 @@ public final class Namespace
         return new Namespace(null, null);
     }
     
-    public final Namespace createChild(String name)
+    public final Namespace createChild(String name) throws CompilerException
     {
+        if(children.containsKey(name))
+            throw new CompilerException("Namespace '%s' already contains a sub namespace with name = '%s'.", this, name);
+        
         Namespace n = new Namespace(name, this);
         children.put(n.getName(), n);
         return n;
     }
     
-    public final void addField(NamespaceField field)
+    public final void addField(NamespaceField field) throws CompilerException
     {
-        fields.put(Objects.requireNonNull(field).getName(), field);
+        if(fields.containsKey(Objects.requireNonNull(field).getName()))
+            throw new CompilerException("Namespace '%s' already contains a field with name = '%s'.", this, field.getName());
+        fields.put(field.getName(), field);
+    }
+    
+    public final void addMacro(Macro macro) throws CompilerException
+    {
+        if(macros.containsKey(macro.getName()))
+            throw new CompilerException("Namespace '%s' already contains a macro with name = '%s'.", this, macro.getName());
+        macros.put(macro.getName(), macro);
     }
     
     private String toString(boolean printGlobal)
@@ -110,6 +122,39 @@ public final class Namespace
         return toString(parent != null);
     }
     
+    public final void deepClear()
+    {
+        if(parent != null)
+            parent.parentClear(this);
+        for(Namespace child : children.values())
+            child.childClear();
+        clear();
+    }
+    
+    private void parentClear(Namespace origin)
+    {
+        if(parent != null)
+            parent.parentClear(this);
+        for(Namespace child : children.values())
+            if(child != origin)
+                child.childClear();
+        clear();
+    }
+    
+    private void childClear()
+    {
+        for(Namespace child : children.values())
+            child.childClear();
+        clear();
+    }
+    
+    private void clear()
+    {
+        children.clear();
+        fields.clear();
+        macros.clear();
+    }
+    
     
     
     
@@ -125,15 +170,15 @@ public final class Namespace
     }
     private static void addGlobalTypedValue(ScriptToken token)
     {
-        addGlobalTypedValue(token.getLangName(), TypedValue.from(token));
+        addGlobalTypedValue(TypedValue.from(token));
     }
-    private static void addGlobalTypedValue(String name, TypedValue value)
+    private static void addGlobalTypedValue(TypedValue value)
     {
         if(value != null)
         {
             try
             {
-                NamespaceField field = addGlobal(NamespaceField.typedValue(name, value.getType()));
+                NamespaceField field = addGlobal(NamespaceField.typedValue(value.getName(), value.getType()));
                 field.initiateTypedValue(value);
                 TOKEN_GLOBALS.put(value.getToken(), field);
             }
@@ -192,7 +237,7 @@ public final class Namespace
         
         // action //
         for(TypedValue action : TypedValue.from(TypeId.ACTION))
-            addGlobalTypedValue(action.getToken().name(), action);
+            addGlobalTypedValue(action);
         
         // int //
         for(ScriptInternal internal : ScriptInternal.values())

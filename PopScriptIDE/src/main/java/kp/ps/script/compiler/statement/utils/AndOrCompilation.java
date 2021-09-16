@@ -90,15 +90,15 @@ public class AndOrCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
         CodeManager leftPrev = new CodeManager();
         CodeManager rightPrev = new CodeManager();
         CodeManager leftCond = new CodeManager();
         CodeManager rightCond = new CodeManager();
         
-        ConditionalState leftState = leftOperand.conditionalCompile(state, leftPrev, leftCond);
-        ConditionalState rightState = rightOperand.conditionalCompile(state, rightPrev, rightCond);
+        ConditionalState leftState = leftOperand.conditionalCompile(state, leftPrev, leftCond, temps);
+        ConditionalState rightState = rightOperand.conditionalCompile(state, rightPrev, rightCond, temps);
         
         if(leftState != ConditionalState.UNKNOWN && rightState != ConditionalState.UNKNOWN)
         {

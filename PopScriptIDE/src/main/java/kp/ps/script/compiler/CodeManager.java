@@ -19,6 +19,8 @@ public class CodeManager
 {
     private final LinkedList<UInt16> bytecode = new LinkedList<>();
     
+    public final boolean isEmpty() { return bytecode.isEmpty(); }
+    
     private void insertCode(UInt16 code) throws CompilerException
     {
         if(bytecode.size() >= Script.MAX_CODES)
@@ -51,5 +53,10 @@ public class CodeManager
         if(bytecode.size() + code.bytecode.size() >= Script.MAX_CODES)
             throw new CompilerException("Max bytecode data exceded.");
         bytecode.addAll(code.bytecode);
+    }
+    
+    final void clear()
+    {
+        bytecode.clear();
     }
 }

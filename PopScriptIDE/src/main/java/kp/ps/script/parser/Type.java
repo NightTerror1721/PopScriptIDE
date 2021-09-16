@@ -8,6 +8,7 @@ package kp.ps.script.parser;
 import java.util.HashMap;
 import java.util.Objects;
 import kp.ps.script.compiler.CompilerException;
+import kp.ps.script.compiler.types.ParameterType;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.compiler.types.TypeModifier;
 
@@ -40,9 +41,14 @@ public final class Type extends Fragment
         }
     }
     
+    public final ParameterType getParameterType() throws CompilerException
+    {
+        return ParameterType.of(modifier, getTypeId());
+    }
     
-    public String getTypeName() { return getTypeId().getTypeName(); }
-    public String getModifierName() { return getModifier().getModifierName(); }
+    
+    public final String getTypeName() { return getTypeId().getTypeName(); }
+    public final String getModifierName() { return getModifier().getModifierName(); }
     
     public final void insertTypeId(TypeId type) throws CompilerException
     {
@@ -70,9 +76,9 @@ public final class Type extends Fragment
     {
         if(type.id == null)
             insertModifier(type.modifier);
-        if(type.modifier == null)
+        else if(type.modifier == null)
             insertTypeId(type.id);
-        throw new IllegalStateException();
+        else throw new IllegalStateException();
     }
     
     @Override

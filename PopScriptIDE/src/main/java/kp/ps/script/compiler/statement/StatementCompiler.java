@@ -10,12 +10,14 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.LocalElementsScope.Element;
-import kp.ps.script.compiler.Macro;
-import kp.ps.script.compiler.functions.actions.InnerFunction;
-import kp.ps.script.compiler.functions.actions.InnerFunctionPool;
+import kp.ps.script.compiler.functions.InnerFunction;
+import kp.ps.script.compiler.functions.InnerFunctionPool;
+import kp.ps.script.compiler.functions.Macro;
+import kp.ps.script.compiler.statement.StatementTask.ConditionalState;
 import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
+import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.script.compiler.types.TypeId;
-import kp.ps.script.instruction.Instruction;
+import kp.ps.script.instruction.InstructionCompiler;
 import kp.ps.script.namespace.Namespace;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.script.parser.ElementReference;
@@ -47,9 +49,12 @@ public final class StatementCompiler
     {
         CodeManager prev = new CodeManager();
         CodeManager cond = new CodeManager();
-        
-        StatementTask.ConditionalState result = condition.conditionalCompile(state, prev, cond);
-        if(result != StatementTask.ConditionalState.UNKNOWN)
+        ConditionalState result;
+        try(TemporaryVars temps = TemporaryVars.open(state, prev))
+        {
+            result = condition.conditionalCompile(state, prev, cond, temps);
+        }
+        if(result != ConditionalState.UNKNOWN)
             return result;
         
         code.insertCode(prev);
@@ -70,19 +75,22 @@ public final class StatementCompiler
         {
             Scope scope = (Scope) statement;
             state.pushLocalElements();
-            code.insertTokenCode(ScriptToken.BEGIN);
-            for(Instruction inst : scope)
-                inst.normalCompile(state, code);
-            code.insertTokenCode(ScriptToken.END);
+            if(!fakeScope)
+                code.insertTokenCode(ScriptToken.BEGIN);
+            InstructionCompiler.normalCompile(state, code, scope.getInstructionsAsList());
+            if(!fakeScope)
+                code.insertTokenCode(ScriptToken.END);
             state.popLocalElements();
         }
         else if(statement.isStatement())
         {
             StatementTask task = toTask(state, ((Statement) statement));
             state.pushLocalElements();
-            code.insertTokenCode(ScriptToken.BEGIN);
+            if(!fakeScope)
+                code.insertTokenCode(ScriptToken.BEGIN);
             task.normalCompile(state, code);
-            code.insertTokenCode(ScriptToken.END);
+            if(!fakeScope)
+                code.insertTokenCode(ScriptToken.END);
             state.popLocalElements();
         }
         else throw new CompilerException("Expected valid scope, but found '%s'.", statement);
@@ -94,8 +102,7 @@ public final class StatementCompiler
         {
             Scope scope = (Scope) statement;
             state.pushLocalElements();
-            for(Instruction inst : scope)
-                inst.constCompile(state);
+            InstructionCompiler.constCompile(state, scope.getInstructionsAsList());
             state.popLocalElements();
         }
         else if(statement.isStatement())
@@ -294,6 +301,12 @@ public final class StatementCompiler
     
     private static StatementTask toTaskCallAction(CompilerState state, FunctionCall call, Macro macro) throws CompilerException
     {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        Statement[] sargs = call.getAllArguments();
+        StatementTask[] args = new StatementTask[sargs.length];
+        
+        for(int i = 0; i < args.length; ++i)
+            args[i] = toTask(state, sargs[i]);
+        
+        return StatementTaskUtils.macroCall(macro, args);
     }
 }

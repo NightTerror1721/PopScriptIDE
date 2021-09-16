@@ -8,6 +8,7 @@ package kp.ps.script.compiler.statement;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
+import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -20,7 +21,7 @@ public interface StatementTask
     MemoryAddress varCompile(CompilerState state, CodeManager code) throws CompilerException;
     StatementValue constCompile() throws CompilerException;
     StatementValue internalCompile() throws CompilerException;
-    ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException;
+    ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException;
     
     default MemoryAddress normalCompile(CompilerState state, CodeManager code)  throws CompilerException
     {

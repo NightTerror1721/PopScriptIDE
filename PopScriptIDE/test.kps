@@ -1,0 +1,75 @@
+namespace Tribes
+{
+	namespace self
+	{
+		namespace persons
+		{
+			internal int braves = M_PERSON_BRAVE;
+			internal int warriors = M_PERSON_WARRIOR;
+			internal int preachers = M_PERSON_RELIGIOUS;
+			internal int spies = M_PERSON_SPY;
+			internal int firewarriors = M_PERSON_FIREWARRIOR;
+			internal int shamans = M_PERSON_SHAMAN;
+		}
+		
+		namespace buildings
+		{
+			internal int small_huts = M_BUILDING_SMALL_HUT;
+			internal int medium_huts = M_BUILDING_MEDIUM_HUT;
+			internal int large_huts = M_BUILDING_LARGE_HUT;
+			internal int drum_towers = M_BUILDING_DRUM_TOWER;
+			internal int temples = M_BUILDING_TEMPLE;
+			internal int spy_trainers = M_BUILDING_SPY_TRAIN;
+			internal int warrior_trains = M_BUILDING_WARRIOR_TRAIN;
+			internal int firewarrior_trains = M_BUILDING_FIREWARRIOR_TRAIN;
+			internal int boat_huts = M_BUILDING_BOAT_HUT;
+			internal int airship_huts = M_BUILDING_AIRSHIP_HUT;
+		}
+		
+		namespace kills_by
+		{
+			internal int blue = MY_NUM_KILLED_BY_BLUE;
+			internal int red = MY_NUM_KILLED_BY_RED;
+			internal int yellow = MY_NUM_KILLED_BY_YELLOW;
+			internal int green = MY_NUM_KILLED_BY_GREEN;
+		}
+		
+		namespace kills_to
+		{
+			internal int blue = BLUE_KILLED_BY_ME;
+			internal int red = RED_KILLED_BY_ME;
+			internal int yellow = YELLOW_KILLED_BY_ME;
+			internal int green = GREEN_KILLED_BY_ME;
+		}
+	}
+}
+
+const int TRUE = 1;
+const int FALSE = 0;
+
+macro max(int x, int y)
+{
+	yield x > y ? x : y;
+}
+
+main
+{
+	const int VERSION = 1;
+	
+	int value = VERSION;
+	int val2 = value + (50 * value + VERSION * 2);
+	
+	int huts = Tribes.self.buildings.small_huts;
+	
+	int idx = 0;
+	if(huts > 2 && (value + 3 < 10 || value - val2 == 0))
+	{
+		TrainPeopleNow(3 * (idx + 2), WARRIOR);
+		idx++;
+	}
+	
+	int test = huts == 2 ? value + 2 : WARRIOR;
+	
+	int val = max(huts, 10);
+	val = max(10, 150);
+}

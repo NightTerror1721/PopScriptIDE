@@ -200,6 +200,7 @@ public final class Script
         byte[] rawFields = new byte[ScriptField.BYTES * MAX_FIELDS];
         for(int i = 0; i < fields.length; ++i)
             ScriptField.write(rawFields, i * ScriptField.BYTES, fields[i]);
+        os.write(rawFields);
         
         os.write(new byte[264]);
     }

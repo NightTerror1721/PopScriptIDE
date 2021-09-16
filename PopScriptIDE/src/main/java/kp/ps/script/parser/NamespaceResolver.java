@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import kp.ps.script.compiler.CompilerException;
-import kp.ps.script.compiler.Macro;
+import kp.ps.script.compiler.functions.Macro;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.namespace.Namespace;
 import kp.ps.script.namespace.NamespaceField;

@@ -6,6 +6,7 @@
 package kp.ps.script.parser.args;
 
 import java.util.Objects;
+import kp.ps.script.parser.ElementReference;
 import kp.ps.script.parser.Identifier;
 import kp.ps.script.parser.Type;
 
@@ -17,11 +18,13 @@ final class DeclarationArgument extends Argument
 {
     private final Type type;
     private final Identifier identifier;
+    private final ElementReference defaultValue;
     
-    DeclarationArgument(Type type, Identifier identifier)
+    DeclarationArgument(Type type, Identifier identifier, ElementReference defaultValue)
     {
         this.type = Objects.requireNonNull(type);
         this.identifier = Objects.requireNonNull(identifier);
+        this.defaultValue = defaultValue;
     }
     
     @Override
@@ -32,6 +35,9 @@ final class DeclarationArgument extends Argument
     
     @Override
     public final Identifier getDeclarationIdentifier() { return identifier; }
+    
+    @Override
+    public final ElementReference getDeclarationDefaultValue() { return defaultValue; }
     
     @Override
     public final String toString() { return type + " " + identifier; }

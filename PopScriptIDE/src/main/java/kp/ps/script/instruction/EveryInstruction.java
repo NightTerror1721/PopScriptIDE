@@ -18,8 +18,8 @@ import kp.ps.script.parser.ArgumentList;
 import kp.ps.script.parser.CodeParser;
 import kp.ps.script.parser.Command;
 import kp.ps.script.parser.CommandId;
-import kp.ps.script.parser.Fragment;
 import kp.ps.script.parser.FragmentList;
+import kp.ps.script.parser.Scope;
 import kp.ps.script.parser.Statement;
 import kp.ps.utils.CodeReader;
 import kp.ps.utils.ints.Int32;
@@ -32,10 +32,12 @@ public class EveryInstruction extends Instruction
 {
     private final Statement period;
     private final Statement delay;
-    private final Fragment block;
+    private final Scope block;
     
-    private EveryInstruction(Statement period, Statement delay, Fragment block)
+    private EveryInstruction(int firstLine, int lastLine, Statement period, Statement delay, Scope block)
     {
+        super(firstLine, lastLine);
+        
         this.period = Objects.requireNonNull(period);
         this.delay = delay;
         this.block = Objects.requireNonNull(block);
@@ -82,6 +84,8 @@ public class EveryInstruction extends Instruction
             
             MemoryAddress.of(iDelay).compileRead(state, code);
         }
+        
+        StatementCompiler.compileScope(state, code, block);
     }
 
     @Override
@@ -96,19 +100,23 @@ public class EveryInstruction extends Instruction
         throw new CompilerException("'every' instruction cannot work in static environment (out of any code section).");
     }
     
-    public static final EveryInstruction parse(CodeReader reader, ErrorList errors) throws CompilerException
+    @Override
+    public final boolean hasYieldInstruction() { return false; }
+    
+    public static final EveryInstruction parse(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         FragmentList frags = parser.parseCommandArgsAndScope(reader, Command.fromId(CommandId.EVERY), errors);
+        int last = reader.getCurrentLine();
         
         ArgumentList args = frags.get(0);
-        Fragment scope = frags.get(1);
+        Scope scope = frags.get(1);
         
         if(args.size() < 1 || args.size() > 2)
             throw new CompilerException("Malformed 'every' command. Expected 'every(const int period, const int delay = 0)'. But found %s", frags);
         
         if(args.size() == 1)
-            return new EveryInstruction(args.getArgument(0).getStatement(), null, scope);
-        return new EveryInstruction(args.getArgument(0).getStatement(), args.getArgument(1).getStatement(), scope);
+            return new EveryInstruction(first, last, args.getArgument(0).getStatement(), null, scope);
+        return new EveryInstruction(first, last, args.getArgument(0).getStatement(), args.getArgument(1).getStatement(), scope);
     }
 }

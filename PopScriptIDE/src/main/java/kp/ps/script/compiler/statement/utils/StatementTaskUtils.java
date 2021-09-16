@@ -5,7 +5,8 @@
  */
 package kp.ps.script.compiler.statement.utils;
 
-import kp.ps.script.compiler.functions.actions.InnerFunction;
+import kp.ps.script.compiler.functions.InnerFunction;
+import kp.ps.script.compiler.functions.Macro;
 import kp.ps.script.compiler.statement.StatementTask;
 import kp.ps.script.compiler.statement.StatementValue;
 import kp.ps.utils.ints.Int32;
@@ -131,5 +132,10 @@ public final class StatementTaskUtils
     public static final StatementTask actionCall(InnerFunction function, StatementTask[] args)
     {
         return new ActionCallCompilation(function, args);
+    }
+    
+    public static final StatementTask macroCall(Macro macro, StatementTask[] args)
+    {
+        return new MacroCallCompilation(macro, args);
     }
 }

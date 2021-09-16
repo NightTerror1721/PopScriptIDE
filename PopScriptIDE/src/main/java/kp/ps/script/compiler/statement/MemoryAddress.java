@@ -10,6 +10,7 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.LocalElementsScope.Element;
+import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.utils.ints.Int32;
 
@@ -116,6 +117,9 @@ public abstract class MemoryAddress implements StatementTask
             hash = 37 * hash + Objects.hashCode(this.value);
             return hash;
         }
+        
+        @Override
+        public final String toString() { return value.toString(); }
 
         @Override
         public MemoryAddress normalCompile(CompilerState state, CodeManager code) throws CompilerException
@@ -148,9 +152,9 @@ public abstract class MemoryAddress implements StatementTask
         }
 
         @Override
-        public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+        public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
         {
-            return value.conditionalCompile(state, prev, cond);
+            return value.conditionalCompile(state, prev, cond, temps);
         }
     }
     
@@ -217,7 +221,7 @@ public abstract class MemoryAddress implements StatementTask
         }
 
         @Override
-        public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+        public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
         {
             throw new IllegalStateException();
         }
@@ -228,6 +232,9 @@ public abstract class MemoryAddress implements StatementTask
             int hash = 5;
             return hash;
         }
+        
+        @Override
+        public final String toString() { return "<INVALID_MEMORY_LOCATION>"; }
     }
     private static final InvalidMemoryAddress INVALID = new InvalidMemoryAddress();
 }

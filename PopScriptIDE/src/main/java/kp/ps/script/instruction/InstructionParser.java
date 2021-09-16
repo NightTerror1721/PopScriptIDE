@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import kp.ps.script.compiler.CompilerException;
+import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.parser.CodeParser;
 import kp.ps.script.parser.Command;
@@ -25,11 +26,13 @@ public final class InstructionParser
 {
     private InstructionParser() {}
     
-    public static final List<Instruction> parse(CodeReader source, boolean singleInstruction, ErrorList errors)
+    public static final List<Instruction> parse(CompilerState state, CodeReader source, boolean singleInstruction, ErrorList errors)
     {
+        CodeParser parser = new CodeParser(state);
+        
         if(singleInstruction)
         {
-            Instruction inst = parse(source, null, errors);
+            Instruction inst = parse(state, source, parser, null, errors);
             if(inst == null)
                 return Collections.emptyList();
             return Collections.singletonList(inst);
@@ -38,7 +41,7 @@ public final class InstructionParser
         LinkedList<Instruction> insts = new LinkedList<>();
         while(source.hasNext())
         {
-            Instruction inst = parse(source, insts.isEmpty() ? null : insts.getLast(), errors);
+            Instruction inst = parse(state, source, parser, insts.isEmpty() ? null : insts.getLast(), errors);
             if(inst != null)
                 insts.add(inst);
         }
@@ -46,12 +49,11 @@ public final class InstructionParser
         return insts;
     }
     
-    private static Instruction parse(CodeReader source, Instruction prev, ErrorList errors)
+    private static Instruction parse(CompilerState state, CodeReader source, CodeParser parser, Instruction prev, ErrorList errors)
     {
         int firstLine = source.getCurrentLine();
         try
         {
-            CodeParser parser = new CodeParser();
             Fragment firstFrag = parser.parseFragment(source, true, errors);
             
             if(firstFrag == null)
@@ -59,15 +61,15 @@ public final class InstructionParser
             
             if(firstFrag.isCommand())
             {
-                return parseCommand(source, (Command) firstFrag, prev, errors);
+                return parseCommand(state, source, parser, (Command) firstFrag, prev, errors);
             }
             else if(firstFrag.isType())
             {
-                return DeclarationInstruction.parse(source, (Type) firstFrag, errors);
+                return DeclarationInstruction.parse(source, parser, (Type) firstFrag, errors);
             }
             else if(firstFrag.isStatement())
             {
-                return StatementInstruction.parse(source, errors, firstFrag);
+                return StatementInstruction.parse(source, parser, errors, firstFrag);
             }
             else if(firstFrag.equals(Separator.SEMI_COLON))
             {
@@ -83,27 +85,39 @@ public final class InstructionParser
         }
     }
     
-    private static Instruction parseCommand(CodeReader source, Command command, Instruction prev, ErrorList errors) throws CompilerException
+    private static Instruction parseCommand(
+            CompilerState state,
+            CodeReader source,
+            CodeParser parser,
+            Command command,
+            Instruction prev,
+            ErrorList errors) throws CompilerException
     {
         switch(command.getCommandId())
         {
             case IF:
-                return ConditionalInstruction.parse(source, prev, false, errors);
+                return ConditionalInstruction.parse(source, parser, prev, false, errors);
                 
             case ELSE:
-                return ConditionalInstruction.parse(source, prev, true, errors);
+                return ConditionalInstruction.parse(source, parser, prev, true, errors);
                 
             case EVERY:
-                return EveryInstruction.parse(source, errors);
+                return EveryInstruction.parse(source, parser, errors);
                 
             case MAIN:
-                return MainInitInstruction.parse(source, true, errors);
+                return MainInitInstruction.parse(source, parser, true, errors);
                 
             case INIT:
-                return MainInitInstruction.parse(source, false, errors);
+                return MainInitInstruction.parse(source, parser, false, errors);
                 
             case NAMESPACE:
-                return NamespaceInstruction.parse(source, errors);
+                return NamespaceInstruction.parse(source, parser, errors);
+                
+            case MACRO:
+                return MacroDeclarationInstruction.parse(state, source, parser, errors);
+                
+            case YIELD:
+                return YieldInstruction.parse(source, parser, errors);
         }
         
         throw new CompilerException("Unimpletented command '%s'.", command);

@@ -26,8 +26,10 @@ public class MainInitInstruction extends Instruction
     private final Instruction[] instructions;
     private final boolean isMain;
     
-    private MainInitInstruction(Instruction[] instructions, boolean isMain)
+    private MainInitInstruction(int firstLine, int lastLine, Instruction[] instructions, boolean isMain)
     {
+        super(firstLine, lastLine);
+        
         this.instructions = Objects.requireNonNull(instructions);
         this.isMain = isMain;
     }
@@ -61,12 +63,16 @@ public class MainInitInstruction extends Instruction
         else initCode.insertCode(code);
     }
     
-    public static final MainInitInstruction parse(CodeReader reader, boolean isMain, ErrorList errors) throws CompilerException
+    @Override
+    public final boolean hasYieldInstruction() { return false; }
+    
+    public static final MainInitInstruction parse(CodeReader reader, CodeParser parser, boolean isMain, ErrorList errors) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         FragmentList list = parser.parseCommandScope(reader, Command.fromId(isMain ? CommandId.MAIN : CommandId.INIT), errors);
-        Scope scope = list.get(0);
+        int last = reader.getCurrentLine();
         
-        return new MainInitInstruction(scope.getInstructions(), isMain);
+        Scope scope = list.get(0);
+        return new MainInitInstruction(first, last, scope.getInstructions(), isMain);
     }
 }

@@ -31,8 +31,10 @@ public class NamespaceInstruction extends Instruction
     private final ElementReference ref;
     private final Instruction[] instructions;
     
-    private NamespaceInstruction(ElementReference ref, Instruction[] instructions)
+    private NamespaceInstruction(int firstLine, int lastLine, ElementReference ref, Instruction[] instructions)
     {
+        super(firstLine, lastLine);
+        
         this.ref = Objects.requireNonNull(ref);
         this.instructions = Objects.requireNonNull(instructions);
     }
@@ -61,7 +63,16 @@ public class NamespaceInstruction extends Instruction
         popNamespace(state, old);
     }
     
-    private Namespace pushNamespace(CompilerState state)
+    @Override
+    public final boolean hasYieldInstruction()
+    {
+        for(Instruction inst : instructions)
+            if(inst.hasYieldInstruction())
+                return true;
+        return false;
+    }
+    
+    private Namespace pushNamespace(CompilerState state) throws CompilerException
     {
         Namespace old = state.getNamespace();
         if(ref.isIdentifier())
@@ -85,10 +96,11 @@ public class NamespaceInstruction extends Instruction
         while(old != state.getNamespace());
     }
     
-    public static final NamespaceInstruction parse(CodeReader reader, ErrorList errors) throws CompilerException
+    public static final NamespaceInstruction parse(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         FragmentList list = parser.parseUntilScopeAsList(reader, Command.fromId(CommandId.NAMESPACE), errors);
+        int last = reader.getCurrentLine();
         
         int len = list.size();
         if(len < 2)
@@ -99,6 +111,6 @@ public class NamespaceInstruction extends Instruction
         if(!statement.isElementReference())
             throw new CompilerException("Expected valid identifier after 'namespace' command.");
         
-        return new NamespaceInstruction((ElementReference) statement, scope.getInstructions());
+        return new NamespaceInstruction(first, last, (ElementReference) statement, scope.getInstructions());
     }
 }

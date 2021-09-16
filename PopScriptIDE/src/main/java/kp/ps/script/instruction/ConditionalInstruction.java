@@ -6,6 +6,7 @@
 package kp.ps.script.instruction;
 
 import java.util.Objects;
+import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
@@ -17,8 +18,8 @@ import kp.ps.script.parser.ArgumentList;
 import kp.ps.script.parser.CodeParser;
 import kp.ps.script.parser.Command;
 import kp.ps.script.parser.CommandId;
-import kp.ps.script.parser.Fragment;
 import kp.ps.script.parser.FragmentList;
+import kp.ps.script.parser.Scope;
 import kp.ps.script.parser.Statement;
 import kp.ps.utils.CodeReader;
 
@@ -29,16 +30,17 @@ import kp.ps.utils.CodeReader;
 public class ConditionalInstruction extends Instruction
 {
     private final Statement condition;
-    private final Fragment action;
-    private Fragment elseAction;
+    private final Scope action;
+    private Scope elseAction;
     
-    private ConditionalInstruction(Statement condition, Fragment action)
+    private ConditionalInstruction(int firstLine, int lastLine, Statement condition, Scope action)
     {
+        super(firstLine, lastLine);
         this.condition = Objects.requireNonNull(condition);
         this.action = Objects.requireNonNull(action);
     }
     
-    public final void insertElsePart(Fragment scope) throws CompilerException
+    public final void insertElsePart(Scope scope) throws CompilerException
     {
         if(elseAction != null)
             throw  new CompilerException("Cannot attach else statement after another else statement.");
@@ -62,7 +64,11 @@ public class ConditionalInstruction extends Instruction
         {
             StatementCompiler.compileScope(state, code, action);
             if(elseAction != null)
+            {
+                code.insertTokenCode(ScriptToken.ELSE);
                 StatementCompiler.compileScope(state, code, elseAction);
+            }
+            code.insertTokenCode(ScriptToken.ENDIF);
         }
     }
 
@@ -83,43 +89,65 @@ public class ConditionalInstruction extends Instruction
         throw new CompilerException("Conditional elements (if, else) cannot work in static environment (out of any code section).");
     }
     
+    @Override
+    public final boolean hasYieldInstruction() { return false; }
+    
     public static final ConditionalInstruction parse(
             CodeReader reader,
+            CodeParser parser,
             Instruction lastInstruction,
             boolean isElse,
             ErrorList errors) throws CompilerException
     {
         if(isElse)
         {
-            parseElse(reader, lastInstruction, errors);
+            parseElse(reader, parser, lastInstruction, errors);
             return null;
         }
-        return parseIf(reader, errors);
+        return parseIf(reader, parser, errors);
     }
     
-    private static ConditionalInstruction parseIf(CodeReader reader, ErrorList errors) throws CompilerException
+    private static ConditionalInstruction parseIf(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         FragmentList frags = parser.parseCommandArgsAndScope(reader, Command.fromId(CommandId.IF), errors);
+        int last = reader.getCurrentLine();
         
         ArgumentList args = (ArgumentList) frags.get(0);
-        Fragment scope = frags.get(1);
+        Scope scope = frags.get(1);
         
         if(args.size() != 1 || !args.isCallArguments())
             throw new CompilerException("Expected valid statement inside 'if' parentheis. 'if(<statement>)...'.");
         
-        return new ConditionalInstruction(args.getArgument(0).getStatement(), scope);
+        return new ConditionalInstruction(first, last, args.getArgument(0).getStatement(), scope);
     }
     
-    private static void parseElse(CodeReader reader, Instruction lastInstruction, ErrorList errors) throws CompilerException
+    private static void parseElse(CodeReader reader, CodeParser parser, Instruction lastInstruction, ErrorList errors) throws CompilerException
     {
         if(lastInstruction == null || !(lastInstruction instanceof ConditionalInstruction))
             throw new CompilerException("Can only put 'else' command after 'if' command.");
         
-        CodeParser parser = new CodeParser();
         FragmentList frags = parser.parseCommandScope(reader, Command.fromId(CommandId.ELSE), errors);
+        int last = reader.getCurrentLine();
         
         ConditionalInstruction cond = (ConditionalInstruction) lastInstruction;
         cond.insertElsePart(frags.get(0));
+        cond.updateLastLine(last);
     }
+
+    /*@Override
+    String toString(int currentIdent, int deltaIdent)
+    {
+        StringBuilder sb = new StringBuilder();
+        String oldIdent = Utils.stringDup(' ', currentIdent);
+        String newIdent = Utils.stringDup(' ', currentIdent + deltaIdent);
+        
+        sb.append(oldIdent)
+                .append(CommandId.IF)
+                .append('(')
+                .append(condition)
+                .append(')')
+                .append('\n');
+        action.
+    }*/
 }

@@ -24,8 +24,9 @@ public class StatementInstruction extends Instruction
 {
     private final Statement statement;
     
-    private StatementInstruction(Statement statement)
+    private StatementInstruction(int firstLine, int lastLine, Statement statement)
     {
+        super(firstLine, lastLine);
         this.statement = Objects.requireNonNull(statement);
     }
     
@@ -47,10 +48,14 @@ public class StatementInstruction extends Instruction
         throw new CompilerException("Regular statements cannot work in static environment (out of any code section).");
     }
     
-    public static final StatementInstruction parse(CodeReader reader, ErrorList errors, Fragment... preFragments) throws CompilerException
+    @Override
+    public final boolean hasYieldInstruction() { return false; }
+    
+    public static final StatementInstruction parse(CodeReader reader, CodeParser parser, ErrorList errors, Fragment... preFragments) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         Statement statement = parser.parseInlineInstruction(reader, errors, preFragments);
-        return new StatementInstruction(statement);
+        int last = reader.getCurrentLine();
+        return new StatementInstruction(first, last, statement);
     }
 }

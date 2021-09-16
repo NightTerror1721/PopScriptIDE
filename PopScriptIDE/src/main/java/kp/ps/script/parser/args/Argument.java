@@ -5,6 +5,7 @@
  */
 package kp.ps.script.parser.args;
 
+import kp.ps.script.parser.ElementReference;
 import kp.ps.script.parser.Identifier;
 import kp.ps.script.parser.Statement;
 import kp.ps.script.parser.Type;
@@ -22,9 +23,13 @@ public abstract class Argument
     
     public Type getDeclarationType() { throw new UnsupportedOperationException(); }
     public Identifier getDeclarationIdentifier() { throw new UnsupportedOperationException(); }
+    public ElementReference getDeclarationDefaultValue() { throw new UnsupportedOperationException(); }
     
     public static final Argument call(Statement statement) { return new CallArgument(statement); }
-    public static final Argument declaration(Type type, Identifier identifier) { return new DeclarationArgument(type, identifier); }
+    public static final Argument declaration(Type type, Identifier identifier, ElementReference defaultValue)
+    {
+        return new DeclarationArgument(type, identifier, defaultValue);
+    }
     
     @Override
     public abstract String toString();

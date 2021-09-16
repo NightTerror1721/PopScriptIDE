@@ -140,13 +140,31 @@ public final class ArgumentList extends Fragment implements Iterable<Argument>
         FragmentList[] parts = frags.split(Separator.COMMA);
         for(FragmentList part : parts)
         {
-            if(part.size() != 2 || !part.get(0).isType() || !part.get(1).isIdentifier())
+            if(part.size() != 2 || !part.get(0).isType() || !(part.get(1).isIdentifier() || part.get(1).isAssignmentOperation()))
                 throw new SyntaxException("Required a comma-separated <type> <identifier> vars in macro parameters.");
             
-            Identifier name = (Identifier) part.get(1);
+            Identifier name;
+            ElementReference defaultValue;
+            if(part.get(1).isIdentifier())
+            {
+                name = part.get(1);
+                defaultValue = null;
+            }
+            else
+            {
+                Operation assign = part.get(1);
+                if(!assign.getBinaryLeftOperand().isIdentifier())
+                    throw new CompilerException("Expected valid identifier in declared argument. But found '%s'", assign);
+                if(!assign.getBinaryRightOperand().isElementReference())
+                    throw new CompilerException("Expected valid identifier in default value of declared argument. But found '%s'", assign);
+                
+                name = (Identifier) assign.getBinaryLeftOperand();
+                defaultValue = (ElementReference) assign.getBinaryRightOperand();
+            }
+            
             Type type = (Type) part.get(0);
             
-            args.add(Argument.declaration(type, name));
+            args.add(Argument.declaration(type, name, defaultValue));
         }
         
         return new ArgumentList(true, args.toArray(Argument[]::new));

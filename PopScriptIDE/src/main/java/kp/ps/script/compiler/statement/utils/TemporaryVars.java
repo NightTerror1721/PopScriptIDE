@@ -41,7 +41,7 @@ public final class TemporaryVars implements Closeable
     public final MemoryAddress push() throws CompilerException
     {
         Element elem = state.getLocalElements().pushTemporal();
-        vars.add(elem);
+        vars.push(elem);
         return addr(elem);
     }
     
@@ -78,8 +78,7 @@ public final class TemporaryVars implements Closeable
         {
             while(!vars.isEmpty())
             {
-                if(!vars.peek().isVariableInitiated())
-                    state.getLocalElements().popTemporal();
+                state.getLocalElements().popTemporal();
                 vars.pop();
             }
         }

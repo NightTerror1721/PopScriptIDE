@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.script.compiler.functions.actions;
+package kp.ps.script.compiler.functions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +15,6 @@ import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
-import kp.ps.script.compiler.functions.Parameter;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
 import kp.ps.script.compiler.statement.StatementValue;
@@ -85,31 +84,32 @@ public class InnerFunction
             pair.right.check(pair.left);
     }
     
-    public final MemoryAddress compile(CompilerState state, CodeManager code, StatementTask[] argTaks, MemoryAddress retloc) throws CompilerException
+    public final MemoryAddress compile(CompilerState state, CodeManager code, StatementTask[] argTasks, MemoryAddress retloc) throws CompilerException
     {
-        if(argTaks.length > parameters.size())
-            throw new CompilerException("Expected only %s num of args. But found %s.", parameters.size(), argTaks.length);
+        if(argTasks.length > parameters.size())
+            throw new CompilerException("Expected only %s num of args. But found %s.", parameters.size(), argTasks.length);
         
-        if(argTaks.length < numOfMandatoryArgs)
-            throw new CompilerException("Expected at least %s num of args. But found %s.", numOfMandatoryArgs, argTaks.length);
+        if(argTasks.length < numOfMandatoryArgs)
+            throw new CompilerException("Expected at least %s num of args. But found %s.", numOfMandatoryArgs, argTasks.length);
         
-        CodeManager tempCode = new CodeManager();
-        try(TemporaryVars temps = TemporaryVars.open(state, tempCode))
+        CodeManager prevCode = new CodeManager();
+        CodeManager argsCode = new CodeManager();
+        try(TemporaryVars temps = TemporaryVars.open(state, prevCode))
         {
             int argId = 0;
             for(Parameter par : parameters)
             {
-                StatementValue valueArg = argId >= argTaks.length
+                StatementValue valueArg = argId >= argTasks.length
                         ? null
-                        : temps.argCompileWithTemp(argTaks[argId++]);
-                par.compile(state, code, valueArg);
+                        : temps.argCompileWithTemp(argTasks[argId++]);
+                par.compile(state, argsCode, valueArg);
             }
             
             if(hasReturn)
             {
                 if(retloc.isInvalid())
                 {
-                    temps.push().compileWrite(state, tempCode);
+                    temps.push().compileWrite(state, prevCode);
                     temps.pop();
                 }
                 else
@@ -120,9 +120,10 @@ public class InnerFunction
             else if(!retloc.isInvalid())
                 throw new CompilerException("Cannot assign returned data from 'void' return type functions.");
             
+            code.insertCode(prevCode);
             code.insertTokenCode(ScriptToken.DO);
             code.insertTokenCode(action);
-            code.insertCode(tempCode);
+            code.insertCode(argsCode);
         }
         
         return retloc;

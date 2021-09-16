@@ -34,8 +34,10 @@ public class DeclarationInstruction extends Instruction
     private final TypeId type;
     private final Statement[] statements;
     
-    private DeclarationInstruction(TypeModifier modifier, TypeId type, Statement[] statements) throws CompilerException
+    private DeclarationInstruction(int firstLine, int lastLine, TypeModifier modifier, TypeId type, Statement[] statements) throws CompilerException
     {
+        super(firstLine, lastLine);
+        
         this.modifier = Objects.requireNonNull(modifier);
         this.type = Objects.requireNonNull(type);
         this.statements = Objects.requireNonNull(statements);
@@ -61,7 +63,7 @@ public class DeclarationInstruction extends Instruction
             else
             {
                 Operation op = (Operation) statement;
-                createElement(state, op.getBinaryLeftOperand(), true);
+                createElement(state, op.getBinaryLeftOperand(), false);
                 
                 StatementTask task = StatementCompiler.toTask(state, statement);
                 switch(modifier)
@@ -95,7 +97,7 @@ public class DeclarationInstruction extends Instruction
             else
             {
                 Operation op = (Operation) statement;
-                createElement(state, op.getBinaryLeftOperand(), true);
+                createElement(state, op.getBinaryLeftOperand(), false);
                 StatementCompiler.toTask(state, statement).constCompile();
             }
         }
@@ -123,6 +125,9 @@ public class DeclarationInstruction extends Instruction
             }
         }
     }
+    
+    @Override
+    public final boolean hasYieldInstruction() { return false; }
     
     private void createElement(CompilerState state, Statement statement, boolean isStatic) throws CompilerException
     {
@@ -163,10 +168,11 @@ public class DeclarationInstruction extends Instruction
         }
     }
     
-    public static final DeclarationInstruction parse(CodeReader reader, Type type, ErrorList errors) throws CompilerException
+    public static final DeclarationInstruction parse(CodeReader reader, CodeParser parser, Type type, ErrorList errors) throws CompilerException
     {
-        CodeParser parser = new CodeParser();
+        int first = reader.getCurrentLine();
         FragmentList list = parser.parseInlineInstructionAsList(reader, type, errors);
+        int last = reader.getCurrentLine();
         if(list.isEmpty())
             throw new CompilerException("Expected valid identifier after %s.", type);
         
@@ -181,6 +187,6 @@ public class DeclarationInstruction extends Instruction
             statements[i] = StatementParser.parse(parts[i]);
         }
         
-        return new DeclarationInstruction(type.getModifier(), type.getTypeId(), statements);
+        return new DeclarationInstruction(first, last, type.getModifier(), type.getTypeId(), statements);
     }
 }

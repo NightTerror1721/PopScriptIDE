@@ -8,6 +8,7 @@ package kp.ps.script.parser;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import kp.ps.script.instruction.Instruction;
 
@@ -37,6 +38,11 @@ public final class Scope extends Fragment implements Iterable<Instruction>
     public final Instruction[] getInstructions()
     {
         return Arrays.copyOf(instructions, instructions.length);
+    }
+    
+    public final List<Instruction> getInstructionsAsList()
+    {
+        return Arrays.asList(instructions);
     }
     
     @Override

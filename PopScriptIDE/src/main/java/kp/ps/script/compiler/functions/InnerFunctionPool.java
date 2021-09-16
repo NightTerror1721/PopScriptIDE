@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.script.compiler.functions.actions;
+package kp.ps.script.compiler.functions;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
 import kp.ps.script.compiler.TypedValue;
-import kp.ps.script.compiler.functions.Parameter;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.utils.Utils;
 import kp.ps.utils.ints.Int32;

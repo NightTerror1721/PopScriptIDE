@@ -102,12 +102,9 @@ public final class MulDivCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, prev))
-        {
-            return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond);
-        }
+        return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond, temps);
     }
     
     private int constOperation(int left, int right)

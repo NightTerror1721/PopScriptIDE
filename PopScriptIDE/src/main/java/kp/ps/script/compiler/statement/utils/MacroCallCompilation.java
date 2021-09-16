@@ -9,7 +9,7 @@ import java.util.Objects;
 import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
-import kp.ps.script.compiler.functions.InnerFunction;
+import kp.ps.script.compiler.functions.Macro;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
 import kp.ps.script.compiler.statement.StatementValue;
@@ -18,21 +18,21 @@ import kp.ps.script.compiler.statement.StatementValue;
  *
  * @author Marc
  */
-public class ActionCallCompilation implements StatementTask
+public class MacroCallCompilation implements StatementTask
 {
-    private final InnerFunction function;
+    private final Macro macro;
     private final StatementTask[] args;
     
-    ActionCallCompilation(InnerFunction function, StatementTask[] args)
+    MacroCallCompilation(Macro macro, StatementTask[] args)
     {
-        this.function = Objects.requireNonNull(function);
+        this.macro = Objects.requireNonNull(macro);
         this.args = args == null ? new StatementTask[0] : args;
     }
     
     @Override
     public MemoryAddress normalCompile(CompilerState state, CodeManager code, MemoryAddress retloc) throws CompilerException
     {
-        return function.compile(state, code, args, retloc);
+        return macro.compile(state, code, args, retloc);
     }
 
     @Override
@@ -54,9 +54,8 @@ public class ActionCallCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
+    public StatementTask.ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
         return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond, temps);
     }
-    
 }

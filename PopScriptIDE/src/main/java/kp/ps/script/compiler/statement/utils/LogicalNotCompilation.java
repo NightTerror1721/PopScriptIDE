@@ -78,19 +78,16 @@ public class LogicalNotCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, prev))
-        {
-            MemoryAddress loc = temps.normalCompileWithTemp(operand);
-            if(loc.isConstant())
-                return ConditionalState.evaluate(loc.getConstantValue()).inverse();
-            
-            cond.insertTokenCode(ScriptToken.EQUAL_TO);
-            loc.compileRead(state, cond);
-            MemoryAddress.of(Int32.ZERO).compileRead(state, cond);
-            return ConditionalState.UNKNOWN;
-        }
+        MemoryAddress loc = temps.normalCompileWithTemp(operand);
+        if(loc.isConstant())
+            return ConditionalState.evaluate(loc.getConstantValue()).inverse();
+
+        cond.insertTokenCode(ScriptToken.EQUAL_TO);
+        loc.compileRead(state, cond);
+        MemoryAddress.of(Int32.ZERO).compileRead(state, cond);
+        return ConditionalState.UNKNOWN;
     }
     
 }

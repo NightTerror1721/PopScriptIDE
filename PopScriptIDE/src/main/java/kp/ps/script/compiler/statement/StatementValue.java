@@ -14,10 +14,12 @@ import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
 import kp.ps.script.compiler.LocalElementsScope.Element;
 import kp.ps.script.compiler.TypedValue;
+import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.script.compiler.types.CompleteType;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.compiler.types.TypeModifier;
 import kp.ps.script.namespace.NamespaceField;
+import kp.ps.script.parser.ElementReference;
 import kp.ps.script.parser.Identifier;
 import kp.ps.script.parser.Literal;
 import kp.ps.script.parser.NamespaceResolver;
@@ -39,7 +41,7 @@ public abstract class StatementValue implements StatementTask
     public static final StatementValue decode(CompilerState state, Identifier identifier) throws CompilerException
     {
         String name = identifier.toString();
-        if(state.getLocalElements().exists(name))
+        if(state.hasLocalElements() && state.getLocalElements().exists(name))
             return of(state.getLocalElements().get(name));
         if(state.getNamespace().existsField(name))
             return of(state.getNamespace().getField(name));
@@ -49,6 +51,13 @@ public abstract class StatementValue implements StatementTask
     public static final StatementValue decode(CompilerState state, NamespaceResolver resolver) throws CompilerException
     {
         return of(resolver.getNamespaceField(state.getNamespace()));
+    }
+    
+    public static final StatementValue decode(CompilerState state, ElementReference reference) throws CompilerException
+    {
+        if(reference.isIdentifier())
+            return decode(state, reference.getIdentifier());
+        return decode(state, reference.getNamespaceResolver());
     }
     
     public static final StatementValue decode(CompilerState state, Statement statement) throws CompilerException
@@ -79,6 +88,8 @@ public abstract class StatementValue implements StatementTask
     public abstract Int32 getConstantValue() throws CompilerException;
     public abstract ScriptInternal getInternal() throws CompilerException;
     public abstract TypedValue getTypedValue() throws CompilerException;
+    
+    public abstract boolean isVariableInitiated();
     
     public boolean isInitiated() { return true; }
 
@@ -180,7 +191,7 @@ public abstract class StatementValue implements StatementTask
     }
     
     @Override
-    public final ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public final ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
         if(isTypedValue())
             throw new CompilerException("Cannot apply boolean test into token element.");
@@ -239,6 +250,9 @@ public abstract class StatementValue implements StatementTask
         public final TypeId getType() { return TypeId.INT; }
         
         @Override
+        public final boolean isVariableInitiated() { throw new IllegalStateException(); }
+        
+        @Override
         public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.CONST); }
 
         @Override
@@ -252,6 +266,12 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypedValue getTypedValue() { throw new IllegalStateException(); }
+        
+        @Override
+        public final String toString()
+        {
+            return "(const int) " + value;
+        }
     }
     
     private static final class LocalElementValue extends StatementValue
@@ -279,6 +299,9 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypeId getType() { return element.getType(); }
+        
+        @Override
+        public final boolean isVariableInitiated() { return element.isVariableInitiated(); }
         
         @Override
         public final CompleteType getCompleteType() throws CompilerException { return element.getCompleteType(); }
@@ -335,6 +358,12 @@ public abstract class StatementValue implements StatementTask
         {
             element.initiateConstTypedValueValue(value);
         }
+        
+        @Override
+        public final String toString()
+        {
+            return element.toString();
+        }
     }
     
     private static final class NamespaceFieldValue extends StatementValue
@@ -360,6 +389,9 @@ public abstract class StatementValue implements StatementTask
 
         @Override
         public final TypeId getType() { return field.getType(); }
+        
+        @Override
+        public final boolean isVariableInitiated() { throw new IllegalStateException(); }
         
         @Override
         public final CompleteType getCompleteType() throws CompilerException { return field.getCompleteType(); }
@@ -410,6 +442,12 @@ public abstract class StatementValue implements StatementTask
         public final void initiateTypedValue(TypedValue value) throws CompilerException
         {
             field.initiateTypedValue(value);
+        }
+        
+        @Override
+        public final String toString()
+        {
+            return field.toString();
         }
     }
 }

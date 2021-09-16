@@ -105,13 +105,14 @@ public final class FragmentList implements Iterable<Fragment>
     
     public final FragmentList subList(int index, int length)
     {
-        index = Math.max(0, index);
-        int to = Math.min(array.length - 1, index + length);
+        int from = Math.max(0, index);
+        int to = index + Math.max(0, length);
+        to = Math.min(array.length, to);
         
-        if(index < to)
+        if(from >= to)
             return new FragmentList();
         
-        return new FragmentList(Arrays.copyOfRange(array, index, to));
+        return new FragmentList(Arrays.copyOfRange(array, from, to));
     }
     public final FragmentList subList(int index)
     {
@@ -180,6 +181,7 @@ public final class FragmentList implements Iterable<Fragment>
         int last = 0;
         LinkedList<FragmentList> parts = new LinkedList<>();
         for(int i = 0; i < array.length; ++i)
+        {
             if(array[i].equals(sep))
             {
                 if(last >= i)
@@ -190,6 +192,10 @@ public final class FragmentList implements Iterable<Fragment>
                 }
                 last = i + 1;
             }
+        }
+        
+        if(last < array.length)
+            parts.add(subList(last, array.length - last));
         
         if(parts.isEmpty())
             return new FragmentList[] { this };

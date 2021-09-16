@@ -64,6 +64,7 @@ public class ElvisOperatorCompilation implements StatementTask
                     alloc = temps.normalCompileWithTemp(falseOperand);
                     StatementTaskUtils.assignation(retloc, alloc).normalCompile(state, code);
                     code.insertTokenCode(ScriptToken.END);
+                    code.insertTokenCode(ScriptToken.ENDIF);
                 } break;
                 
                 default:
@@ -101,12 +102,9 @@ public class ElvisOperatorCompilation implements StatementTask
     }
 
     @Override
-    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        try(TemporaryVars temps = TemporaryVars.open(state, prev))
-        {
-            return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond);
-        }
+        return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond, temps);
     }
     
 }

@@ -6,6 +6,8 @@
 package kp.ps.script.compiler;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import kp.ps.script.Script;
 import kp.ps.script.ScriptField;
 import kp.ps.script.ScriptInternal;
@@ -19,13 +21,30 @@ public class FieldsManager
 {
     private int fieldCount;
     private int varCount;
-    private int varOffset;
     
     private final ScriptField[] fields = new ScriptField[Script.MAX_FIELDS];
     
     private final FieldLocation[] vars = new FieldLocation[Script.MAX_VARS];
     private final HashMap<ScriptInternal, FieldLocation> internals = new HashMap<>();
     private final HashMap<Int32, FieldLocation> constants = new HashMap<>();
+    
+    private final UnusedVariables unusedVars = new UnusedVariables();
+    
+    final void clear()
+    {
+        fieldCount = 0;
+        varCount = 0;
+        
+        for(int i = 0; i < fields.length; ++i)
+            fields[i] = null;
+        
+        for(int i = 0; i < vars.length; ++i)
+            vars[i] = null;
+        
+        internals.clear();
+        constants.clear();
+        unusedVars.clear();
+    }
     
     private void checkMoreSpace() throws CompilerException
     {
@@ -71,12 +90,12 @@ public class FieldsManager
     
     public final VariableIndex newVariable() throws CompilerException
     {
-        if(varOffset < varCount)
-            return new VariableIndex(varOffset++);
+        if(!unusedVars.isEmpty())
+            return unusedVars.pop();
         
         checkVarsMoreSpace();
         FieldLocation location = allocate();
-        VariableIndex index = new VariableIndex(varOffset++);
+        VariableIndex index = new VariableIndex(varCount++);
         ScriptField field = ScriptField.user(index.index);
         fields[location.location] = field;
         vars[index.index] = location;
@@ -85,23 +104,23 @@ public class FieldsManager
     
     public final FieldLocation getVariableFieldLocation(VariableIndex index)
     {
-        if(index.index >= varOffset)
+        if(index.index >= varCount)
             throw new IllegalStateException("Variable index not found.");
         return vars[index.index];
     }
     
     public final ScriptField getField(FieldLocation location)
     {
-        if(location.location >= varOffset)
+        if(location.location >= fieldCount)
             throw new IllegalStateException("Field location not found.");
         return fields[location.location];
     }
     
-    public final void popVariables(int amount)
+    public final void popVariables(VariableIndex... indices)
     {
-        if(amount > varOffset)
-            throw new IllegalStateException();
-        varOffset -= amount;
+        if(indices != null && indices.length > 0)
+            for(VariableIndex index : indices)
+                unusedVars.push(index);
     }
     
     public final void insertToScript(Script script)
@@ -179,6 +198,42 @@ public class FieldsManager
         public final int compareTo(FieldLocation o)
         {
             return Integer.compare(location, o.location);
+        }
+    }
+    
+    private final class UnusedVariables
+    {
+        private final LinkedList<Integer> list = new LinkedList<>();
+        private final HashSet<Integer> set = new HashSet<>();
+        
+        public final void push(VariableIndex index)
+        {
+            if(index.index >= varCount)
+                throw new IllegalStateException("Variable index not found.");
+            
+            if(set.contains(index.index))
+                throw new IllegalStateException();
+            
+            list.add(index.index);
+            set.add(index.index);
+        }
+        
+        public final VariableIndex pop()
+        {
+            if(list.isEmpty())
+                throw new IllegalStateException();
+            
+            Integer idx = list.pop();
+            set.remove(idx);
+            return new VariableIndex(idx);
+        }
+        
+        public final boolean isEmpty() { return list.isEmpty(); }
+        
+        public final void clear()
+        {
+            list.clear();
+            set.clear();
         }
     }
 }

@@ -8,9 +8,11 @@ package kp.ps.script.compiler;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.function.Predicate;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.compiler.FieldsManager.VariableIndex;
 import kp.ps.script.compiler.statement.MemoryAddress;
+import kp.ps.script.compiler.statement.StatementValue;
 import kp.ps.script.compiler.types.CompleteType;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.compiler.types.TypeModifier;
@@ -52,17 +54,21 @@ public class LocalElementsScope
         if(!temporals.isEmpty())
             throw new IllegalStateException();
         
-        int count = (int) elements.values().stream()
+        elements.values().stream()
+                .filter(Predicate.not(Element::isArgument))
                 .filter(Element::isVariable)
-                .count();
-        fieldsManager.popVariables(count);
+                .filter(Element::isVariableInitiated)
+                .forEach(v -> {
+                    try { fieldsManager.popVariables(v.getVariableIndex(false)); }
+                    catch(CompilerException ex) { throw new IllegalStateException(); }
+                });
         
         elements.clear();
     }
     
     public final Element pushTemporal() throws CompilerException
     {
-        VariableElement elem = new VariableElement(true);
+        VariableElement elem = new VariableElement("<temporal:" + temporals.size() + ">");
         temporals.push(elem);
         return elem;
     }
@@ -78,8 +84,9 @@ public class LocalElementsScope
     {
         if(temporals.isEmpty())
             throw new IllegalStateException();
-        temporals.pop();
-        fieldsManager.popVariables(1);
+        VariableElement temp = temporals.pop();
+        if(temp.isVariableInitiated())
+            fieldsManager.popVariables(temp.variableIndex);
     }
     
     public final Element createConstant(String identifier) throws CompilerException
@@ -90,7 +97,7 @@ public class LocalElementsScope
         if(!temporals.isEmpty())
             throw new IllegalStateException("Cannot create variable if temporals it's not empty.");
         
-        ConstElement elem = new ConstElement();
+        ConstElement elem = new ConstElement(identifier);
         elements.put(identifier, elem);
         return elem;
     }
@@ -98,29 +105,39 @@ public class LocalElementsScope
     public final Element createVariable(String identifier) throws CompilerException
     {
         if(elements.containsKey(identifier))
-            throw new IllegalStateException();
+            throw new CompilerException("Duplicated identifier '%s'.", identifier);
         
-        VariableElement elem = new VariableElement(false);
+        VariableElement elem = new VariableElement(identifier);
         elements.put(identifier, elem);
         return elem;
     }
     
-    public final Element createInternal(String identifier)
+    public final Element createInternal(String identifier) throws CompilerException
     {
         if(elements.containsKey(identifier))
-            throw new IllegalStateException();
+            throw new CompilerException("Duplicated identifier '%s'.", identifier);
         
-        InternalElement elem = new InternalElement();
+        InternalElement elem = new InternalElement(identifier);
         elements.put(identifier, elem);
         return elem;
     }
     
-    public final Element createTypedValue(String identifier, TypeId type)
+    public final Element createTypedValue(String identifier, TypeId type) throws CompilerException
     {
         if(elements.containsKey(identifier))
-            throw new IllegalStateException();
+            throw new CompilerException("Duplicated identifier '%s'.", identifier);
         
-        TypedValueElement elem = new TypedValueElement(type);
+        TypedValueElement elem = new TypedValueElement(type, identifier);
+        elements.put(identifier, elem);
+        return elem;
+    }
+    
+    public final Element createArgument(String identifier, StatementValue value) throws CompilerException
+    {
+        if(elements.containsKey(identifier))
+            throw new CompilerException("Duplicated identifier '%s'.", identifier);
+        
+        ArgumentElement elem = new ArgumentElement(value);
         elements.put(identifier, elem);
         return elem;
     }
@@ -172,16 +189,20 @@ public class LocalElementsScope
         public void initiateConstInternalValue(ScriptInternal value) throws CompilerException { throw new IllegalStateException(); }
         public void initiateConstTypedValueValue(TypedValue value) throws CompilerException { throw new IllegalStateException(); }
         
-        protected boolean isAlias() { return false; }
+        boolean isArgument() { return false; }
         
         public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
     }
     
     private final class ConstElement extends Element
     {
+        private final String name;
         private Int32 value;
         
-        private ConstElement() {}
+        private ConstElement(String name)
+        {
+            this.name = name;
+        }
         
         @Override
         public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.CONST); }
@@ -207,15 +228,34 @@ public class LocalElementsScope
                 throw new CompilerException("const int value already initiated");
             this.value = Objects.requireNonNull(value);
         }
+        
+        @Override
+        public final String toString()
+        {
+            if(name == null)
+            {
+                if(value != null)
+                    return "(const int) " + value;
+                return "(const int) <undefined>";
+            }
+            else
+            {
+                if(value == null)
+                    return "const int " + name;
+                return "const int " + name + " = " + value;
+            }
+        }
     }
     
     private final class VariableElement extends Element
     {
+        private final String name;
         private VariableIndex variableIndex;
         
-        private VariableElement(boolean isTemporal) throws CompilerException
+        private VariableElement(String name) throws CompilerException
         {
-            this.variableIndex = isTemporal ? fieldsManager.newVariable() : null;
+            this.name = Objects.requireNonNull(name);
+            this.variableIndex = null;
         }
         
         @Override
@@ -234,13 +274,23 @@ public class LocalElementsScope
         
         @Override
         public final boolean isVariableInitiated() { return variableIndex != null; }
+        
+        @Override
+        public final String toString()
+        {
+            return "int " + name;
+        }
     }
     
     private final class InternalElement extends Element
     {
+        private final String name;
         private ScriptInternal internal;
         
-        private InternalElement() {}
+        private InternalElement(String name)
+        {
+            this.name = Objects.requireNonNull(name);
+        }
         
         @Override
         public final CompleteType getCompleteType() throws CompilerException { return getType().complete(TypeModifier.INTERNAL); }
@@ -266,15 +316,25 @@ public class LocalElementsScope
                 throw new CompilerException("internal int value already initiated");
             this.internal = Objects.requireNonNull(value);
         }
+        
+        @Override
+        public final String toString()
+        {
+            if(internal == null)
+                return "internal int " + name;
+            return "internal int " + name + " = " + internal.getInternalName();
+        }
     }
     
     private final class TypedValueElement extends Element
     {
+        private final String name;
         private final TypeId type;
         private TypedValue value;
         
-        private TypedValueElement(TypeId type)
+        private TypedValueElement(TypeId type, String name)
         {
+            this.name = Objects.requireNonNull(name);
             this.type = Objects.requireNonNull(type);
         }
         
@@ -309,5 +369,77 @@ public class LocalElementsScope
             
             this.value = Objects.requireNonNull(value);
         }
+        
+        @Override
+        public final String toString()
+        {
+            if(value == null)
+                return type.getTypeName() + " " + name;
+            return type.getTypeName() + " " + name + " = " + value.getName();
+        }
+    }
+    
+    private final class ArgumentElement extends Element
+    {
+        private final StatementValue value;
+        
+        private ArgumentElement(StatementValue value)
+        {
+            this.value = Objects.requireNonNull(value);
+        }
+        
+        @Override
+        public TypeId getType() { return value.getType(); }
+        
+        @Override
+        public final CompleteType getCompleteType() throws CompilerException { return value.getCompleteType(); }
+        
+        @Override
+        public VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException
+        {
+            return value.getVariableIndex(createTemporalIfItIsNeeded);
+        }
+        
+        @Override
+        public Int32 getConstantValue() throws CompilerException { return value.getConstantValue(); }
+        
+        @Override
+        public ScriptInternal getInternal() throws CompilerException { return value.getInternal(); }
+        
+        @Override
+        public TypedValue getTypedValue() throws CompilerException { return value.getTypedValue(); }
+        
+        @Override
+        public boolean isConstant() { return value.isConstant(); }
+        
+        @Override
+        public boolean isVariable() { return value.isVariable(); }
+        
+        @Override
+        public boolean isInternal() { return value.isInternal(); }
+        
+        @Override
+        public boolean isTypedValue() { return value.isTypedValue(); }
+        
+        @Override
+        public boolean isVariableInitiated() { return value.isVariableInitiated(); }
+        
+        @Override
+        public boolean isConstInitiated() { return value.isInitiated(); }
+        
+        @Override
+        public void initiateConstConstantValue(Int32 value) throws CompilerException { this.value.initiateConstant(value); }
+        
+        @Override
+        public void initiateConstInternalValue(ScriptInternal value) throws CompilerException { this.value.initiateInternal(value); }
+        
+        @Override
+        public void initiateConstTypedValueValue(TypedValue value) throws CompilerException { this.value.initiateTypedValue(value); }
+        
+        @Override
+        final boolean isArgument() { return true; }
+        
+        @Override
+        public final String toString() { return value.toString(); }
     }
 }

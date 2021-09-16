@@ -56,6 +56,8 @@ public abstract class Parameter
 
     public abstract boolean hasDefaultValue();
     
+    public abstract StatementValue checkOrGetDefault(StatementValue value) throws CompilerException;
+    
     public abstract StatementValue compile(CompilerState state, CodeManager code, StatementValue value) throws CompilerException;
     public abstract Int32 constCompile(Int32 value) throws CompilerException;
 
@@ -158,10 +160,27 @@ public abstract class Parameter
         public final Int32 getDefaultIntegerValue() { return defaultValue; }
         
         @Override
+        public final StatementValue checkOrGetDefault(StatementValue value) throws CompilerException
+        {
+            if(value == null)
+            {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                return StatementValue.of(defaultValue);
+            }
+            
+            check(value);
+            return value;
+        }
+        
+        @Override
         public final StatementValue compile(CompilerState state, CodeManager code, StatementValue value) throws CompilerException
         {
             if(value == null)
             {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                
                 StatementValue def = StatementValue.of(defaultValue);
                 MemoryAddress.of(def).compileRead(state, code);
                 return def;
@@ -205,10 +224,27 @@ public abstract class Parameter
         public final ScriptInternal getDefaultInternalValue() { return defaultValue; }
         
         @Override
+        public final StatementValue checkOrGetDefault(StatementValue value) throws CompilerException
+        {
+            if(value == null)
+            {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                return StatementValue.of(Namespace.getGlobalByInternal(defaultValue));
+            }
+            
+            check(value);
+            return value;
+        }
+        
+        @Override
         public final StatementValue compile(CompilerState state, CodeManager code, StatementValue value) throws CompilerException
         {
             if(value == null)
             {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                
                 StatementValue def = StatementValue.of(Namespace.getGlobalByInternal(defaultValue));
                 MemoryAddress.of(def).compileRead(state, code);
                 return def;
@@ -254,10 +290,27 @@ public abstract class Parameter
         public final TypedValue getDefaultTypedValue() { return defaultValue; }
         
         @Override
+        public final StatementValue checkOrGetDefault(StatementValue value) throws CompilerException
+        {
+            if(value == null)
+            {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                return StatementValue.of(Namespace.getGlobalByToken(defaultValue.getToken()));
+            }
+            
+            check(value);
+            return value;
+        }
+        
+        @Override
         public final StatementValue compile(CompilerState state, CodeManager code, StatementValue value) throws CompilerException
         {
             if(value == null)
             {
+                if(defaultValue == null)
+                    throw new CompilerException("Parameter '%s' has not default value.", getName());
+                
                 StatementValue def = StatementValue.of(Namespace.getGlobalByToken(defaultValue.getToken()));
                 MemoryAddress.of(def).compileRead(state, code);
                 return def;
