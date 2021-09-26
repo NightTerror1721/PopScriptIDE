@@ -53,9 +53,14 @@ public final class Utils
     private static Icon ICON_FUNCTION;
     private static Icon ICON_FIELD;
     private static Icon ICON_MACRO;
-    private static Icon ICON_FIELDS_CATEGORY;
-    private static Icon ICON_FUNCTIONS_CATEGORY;
-    private static Icon ICON_MACROS_CATEGORY;
+    private static Icon ICON_KEYWORD;
+    private static Icon ICON_FOLDER;
+    
+    public static final int DEFAULT_RELEVANCE = 0;
+    public static final int NAMESPACE_RELEVANCE = 1;
+    public static final int FUNCTION_RELEVANCE = 2;
+    public static final int MACRO_RELEVANCE = 3;
+    public static final int FIELD_RELEVANCE = 4;
     
     
     public static byte clamp(byte value, int min, int max)
@@ -255,54 +260,42 @@ public final class Utils
     public static final Icon getNamespaceIcon()
     {
         if(ICON_NAMESPACE == null)
-            ICON_NAMESPACE = loadIcon("namespace.gif");
+            ICON_NAMESPACE = loadIcon("namespace.png");
         return ICON_NAMESPACE;
     }
     
     public static final Icon getFieldIcon()
     {
         if(ICON_FIELD == null)
-            ICON_FIELD = loadIcon("field.gif");
+            ICON_FIELD = loadIcon("field.png");
         return ICON_FIELD;
     }
     
     public static final Icon getFunctionIcon()
     {
         if(ICON_FUNCTION == null)
-            ICON_FUNCTION = loadIcon("function.gif");
+            ICON_FUNCTION = loadIcon("function.png");
         return ICON_FUNCTION;
     }
     
     public static final Icon getMacroIcon()
     {
         if(ICON_MACRO == null)
-            ICON_MACRO = loadIcon("macro.gif");
+            ICON_MACRO = loadIcon("macro.png");
         return ICON_MACRO;
     }
     
-    public static final Icon getFieldsCategoryIcon()
+    public static final Icon getKeywordIcon()
     {
-        if(ICON_FIELDS_CATEGORY == null)
-            ICON_FIELDS_CATEGORY = loadIcon("fields_category.gif");
-        return ICON_FIELDS_CATEGORY;
+        if(ICON_KEYWORD == null)
+            ICON_KEYWORD = loadIcon("keyword.png");
+        return ICON_KEYWORD;
     }
     
-    public static final Icon getFunctionsCategoryIcon()
+    public static final Icon getFolderIcon()
     {
-        if(ICON_FUNCTIONS_CATEGORY == null)
-            ICON_FUNCTIONS_CATEGORY = loadIcon("functions_category.gif");
-        return ICON_FUNCTIONS_CATEGORY;
-    }
-    
-    public static final Icon getMacrosCategoryIcon()
-    {
-        if(ICON_MACROS_CATEGORY == null)
-            ICON_MACROS_CATEGORY = loadIcon("macros_category.gif");
-        return ICON_MACROS_CATEGORY;
-    }
-    
-    public static final Icon getNamespacesCategoryIcon()
-    {
-        return getNamespaceIcon();
+        if(ICON_FOLDER == null)
+            ICON_FOLDER = loadIcon("folder.png");
+        return ICON_FOLDER;
     }
 }

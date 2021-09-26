@@ -5,6 +5,7 @@
  */
 package kp.ps.editor;
 
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,11 +16,16 @@ import java.util.Objects;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import kp.ps.script.Script;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.ErrorList.ErrorEntry;
 import kp.ps.script.compiler.ScriptCompiler;
 import kp.ps.utils.Utils;
+import org.fife.ui.autocomplete.Completion;
 
 /**
  *
@@ -36,6 +42,8 @@ public class ScriptEditor extends JFrame
         setSize(1280, 720);
         
         initTerminalErrors();
+        initHelpTree();
+        
         pack();
     }
     
@@ -47,8 +55,10 @@ public class ScriptEditor extends JFrame
     
     private CodeTextArea createNewPage(String title)
     {
-        CodeTextArea codeArea = new CodeTextArea(pages, Objects.requireNonNull(title), this::askSave, this::updateTerminalErrors);
+        CodeTextArea codeArea = new CodeTextArea(pages, treeElements, Objects.requireNonNull(title), this::askSave, this::updateTerminalErrors);
         codeArea.linkToPages();
+        codeArea.linkHelper();
+        codeArea.compileAndUpdateHelpers();
         return codeArea;
     }
     
@@ -180,7 +190,7 @@ public class ScriptEditor extends JFrame
         sb.append("COMPILATION ").append(!errors.hasErrors() ? "SUCCESSFUL" : "FAILED")
                 .append(" (total time: ").append(t2 - t1).append("ms)");
         if(errors.hasErrors())
-            sb.append("\n").append(errors.generateParseResultAsString(area.getParser()));
+            sb.append("\n    ").append(errors.generateParseResultAsString(area.getParser()));
         /*if(result.hasMessages())
             sb.append("\nCompiler messages:\n").append(result.getMessageLog());*/
         
@@ -219,6 +229,10 @@ public class ScriptEditor extends JFrame
                     "Saving Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    private void compileAndExport()
+    {
+        compileAndExport(getSelectedTextArea());
+    }
     
     private CodeTextArea getTextArea(int index)
     {
@@ -250,6 +264,39 @@ public class ScriptEditor extends JFrame
         terminalErrors.getColumnModel().getColumn(1).setPreferredWidth(75);
     }
     
+    private void initHelpTree()
+    {
+        treeElements.setCellRenderer(new ElementHelperTreeCellRenderer());
+        treeElements.setRootVisible(false);
+        treeElements.setShowsRootHandles(true);
+        
+        DefaultTreeModel model = (DefaultTreeModel) treeElements.getModel();
+        model.setRoot(null);
+        
+        treeElements.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        treeElements.getSelectionModel().addTreeSelectionListener((e) -> {
+            TreePath path = e.getPath();
+            if(path != null)
+            {
+                Object obj = path.getLastPathComponent();
+                if(obj != null && obj instanceof DefaultMutableTreeNode)
+                {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) obj;
+                    if(node.getUserObject() != null && node.getUserObject() instanceof Completion)
+                    {
+                        Completion comp = (Completion) node.getUserObject();
+                        String desc = comp.getSummary();
+                        if(desc != null && !desc.isEmpty())
+                            terminalHelp.setText(desc);
+                        else terminalHelp.setText("");
+                    }
+                }
+                else terminalHelp.setText("");
+            }
+            else terminalHelp.setText("");
+        });
+    }
+    
     private void updateTerminalErrors(ErrorList errors)
     {
         DefaultTableModel model = (DefaultTableModel) terminalErrors.getModel();
@@ -264,6 +311,16 @@ public class ScriptEditor extends JFrame
             model.setValueAt(error.getStartLine() + 1, off, 1);
             model.setValueAt(error.getMessage(), off, 2);
             off++;
+        }
+    }
+    
+    private void doMouseClicked(MouseEvent event)
+    {
+        TreePath path = treeElements.getPathForLocation(event.getX(), event.getY());
+        if(path != null)
+        {
+            DefaultTreeModel model = (DefaultTreeModel) treeElements.getModel();
+            
         }
     }
 
@@ -289,6 +346,8 @@ public class ScriptEditor extends JFrame
         jScrollPane1 = new javax.swing.JScrollPane();
         terminalText = new javax.swing.JTextPane();
         helpPanel = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        terminalHelp = new javax.swing.JEditorPane();
         errorsPanel = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         terminalErrors = new javax.swing.JTable();
@@ -352,6 +411,8 @@ public class ScriptEditor extends JFrame
         );
 
         jScrollPane2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        treeElements.setRootVisible(false);
         jScrollPane2.setViewportView(treeElements);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -383,6 +444,14 @@ public class ScriptEditor extends JFrame
         terminalTabs.addTab("Terminal", terminalPanel);
 
         helpPanel.setLayout(new java.awt.GridLayout(1, 1));
+
+        terminalHelp.setEditable(false);
+        terminalHelp.setContentType("text/html"); // NOI18N
+        terminalHelp.setText(" ");
+        jScrollPane4.setViewportView(terminalHelp);
+
+        helpPanel.add(jScrollPane4);
+
         terminalTabs.addTab("Help", helpPanel);
 
         errorsPanel.setLayout(new java.awt.GridLayout(1, 1));
@@ -419,6 +488,11 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jSeparator1);
 
         jMenuItem2.setText("Open Script");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem2);
         jMenu1.add(jSeparator2);
 
@@ -426,16 +500,36 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jMenuItem3);
 
         jMenuItem4.setText("Compile and Export Script");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem4);
         jMenu1.add(jSeparator3);
 
         jMenuItem5.setText("Save Script");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem5);
 
         jMenuItem6.setText("Save all Scripts");
+        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem6ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem6);
 
         jMenuItem7.setText("Save Script as...");
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem7ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem7);
         jMenu1.add(jSeparator4);
 
@@ -444,6 +538,11 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jSeparator5);
 
         jMenuItem9.setText("Exit");
+        jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem9ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem9);
 
         menuBar.add(jMenu1);
@@ -468,6 +567,11 @@ public class ScriptEditor extends JFrame
         jMenu2.add(jSeparator7);
 
         jMenuItem15.setText("Compile");
+        jMenuItem15.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem15ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem15);
 
         menuBar.add(jMenu2);
@@ -509,6 +613,34 @@ public class ScriptEditor extends JFrame
         createNewPage("NewScript");
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
+    private void jMenuItem15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem15ActionPerformed
+        compile();
+    }//GEN-LAST:event_jMenuItem15ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        compileAndExport();
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        save();
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        saveAll();
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
+
+    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
+        saveAs();
+    }//GEN-LAST:event_jMenuItem7ActionPerformed
+
+    private void jMenuItem9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem9ActionPerformed
+        dispose();
+    }//GEN-LAST:event_jMenuItem9ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        load();
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel errorsPanel;
@@ -539,6 +671,7 @@ public class ScriptEditor extends JFrame
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
@@ -552,6 +685,7 @@ public class ScriptEditor extends JFrame
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JTabbedPane pages;
     private javax.swing.JTable terminalErrors;
+    private javax.swing.JEditorPane terminalHelp;
     private javax.swing.JPanel terminalPanel;
     private javax.swing.JTabbedPane terminalTabs;
     private javax.swing.JTextPane terminalText;

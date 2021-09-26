@@ -13,9 +13,11 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import kp.ps.script.compiler.ErrorList;
+import kp.ps.script.compiler.ScriptCompiler;
 import kp.ps.utils.Utils;
 import org.fife.rsta.ui.CollapsibleSectionPanel;
 import org.fife.ui.autocomplete.AutoCompletion;
@@ -34,13 +36,19 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
     private final ButtonTabComponent buttonTab;
     private final PopScriptCompletionProvider completionProvider;
     private final AutoCompletion autoCompletion;
+    private final HelpElementsManager helpElements;
     private final PopScriptParser parser;
     private final ErrorList errors;
     private String name;
     private Path file;
     private boolean hasChanges;
     
-    public CodeTextArea(JTabbedPane pages, String name, Runnable buttonTabAction, Consumer<ErrorList> actionAfterParse)
+    public CodeTextArea(
+            JTabbedPane pages,
+            JTree helpTree,
+            String name,
+            Runnable buttonTabAction,
+            Consumer<ErrorList> actionAfterParse)
     {
         super(20, 60);
         
@@ -85,6 +93,8 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
         
         this.completionProvider = new PopScriptCompletionProvider();
         
+        this.helpElements = new HelpElementsManager(helpTree, completionProvider);
+        
         this.autoCompletion = new AutoCompletion(completionProvider);
         autoCompletion.setParameterAssistanceEnabled(true);
         autoCompletion.setShowDescWindow(true);
@@ -108,7 +118,7 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
             autoCompletion.uninstall();
         });
         
-        this.parser = new PopScriptParser(this, errors, actionAfterParse, completionProvider);
+        this.parser = new PopScriptParser(this, errors, actionAfterParse, completionProvider, helpElements);
         
         setSyntaxEditingStyle(Utils.POPSCRIPT_TEXT_TYPE);
         setCodeFoldingEnabled(true);
@@ -187,5 +197,21 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
         if(component == null)
             return null;
         return (CodeTextArea) ((RTextScrollPane)(((CollapsibleSectionPanel)((JPanel) component).getComponent(0))).getComponent(0)).getTextArea();
+    }
+    
+    public final void linkHelper()
+    {
+        updateHelpers();
+    }
+    
+    public final void compileAndUpdateHelpers()
+    {
+        ScriptCompiler.compile(getText(), errors, file, completionProvider.getBaseProvider());
+        updateHelpers();
+    }
+    
+    public final void updateHelpers()
+    {
+        helpElements.update();
     }
 }

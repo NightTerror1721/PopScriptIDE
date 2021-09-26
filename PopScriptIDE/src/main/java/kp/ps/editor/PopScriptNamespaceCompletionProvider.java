@@ -5,8 +5,11 @@
  */
 package kp.ps.editor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
@@ -14,7 +17,6 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Segment;
 import kp.ps.script.namespace.Namespace;
 import kp.ps.utils.Utils;
-import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.DefaultCompletionProvider;
@@ -27,10 +29,21 @@ public class PopScriptNamespaceCompletionProvider extends DefaultCompletionProvi
 {
     private final HashMap<String, PopScriptNamespaceCompletionProvider> children = new HashMap<>();
     
-    PopScriptNamespaceCompletionProvider() {}
+    PopScriptNamespaceCompletionProvider()
+    {
+        setParameterizedCompletionParams('(', ", ", ')');
+    }
+    
     PopScriptNamespaceCompletionProvider(CompletionProvider parent)
     {
+        this();
         setParent(parent);
+    }
+    
+    final List<Completion> getCompletions() { return completions; }
+    final Map<String, PopScriptNamespaceCompletionProvider> getChildren()
+    {
+        return Collections.unmodifiableMap(children);
     }
     
     @Override
@@ -52,7 +65,7 @@ public class PopScriptNamespaceCompletionProvider extends DefaultCompletionProvi
             children.put(child.getName(), pchild);
             pchild.fill(child);
             
-            BasicCompletion comp = new BasicCompletion(PopScriptNamespaceCompletionProvider.this, child.getName());
+            NamespaceCompletion comp = new NamespaceCompletion(PopScriptNamespaceCompletionProvider.this, child.getName(), child.getName());
             comp.setIcon(Utils.getNamespaceIcon());
             comps.add(comp);
         });

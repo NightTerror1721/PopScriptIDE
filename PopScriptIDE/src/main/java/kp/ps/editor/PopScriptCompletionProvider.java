@@ -25,7 +25,6 @@ import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.CompletionProviderBase;
-import org.fife.ui.autocomplete.DefaultCompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.fife.ui.autocomplete.VariableCompletion;
@@ -39,7 +38,8 @@ import org.fife.ui.rtextarea.ToolTipSupplier;
  */
 public class PopScriptCompletionProvider extends CompletionProviderBase implements ToolTipSupplier
 {
-    private static DefaultCompletionProvider globalProvider;
+    private static PopScriptRootCompletionProvider globalProvider;
+    
     private final PopScriptNamespaceCompletionProvider baseProvider;
 
 
@@ -233,19 +233,23 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     {
         if(globalProvider == null)
         {
-            globalProvider = new DefaultCompletionProvider();
+            globalProvider = new PopScriptRootCompletionProvider();
             LinkedList<Completion> completions = new LinkedList<>();
             Namespace.getAllGlobals().forEach(field -> parseCompletion(globalProvider, completions, field));
             
             for(TypeId type : TypeId.values())
             {
                 BasicCompletion comp = new BasicCompletion(globalProvider, type.getTypeName());
+                comp.setIcon(Utils.getKeywordIcon());
+                comp.setRelevance(Utils.DEFAULT_RELEVANCE);
                 completions.add(comp);
             }
             
             for(CommandId cmd : CommandId.values())
             {
                 BasicCompletion comp = new BasicCompletion(globalProvider, cmd.getCommandName());
+                comp.setIcon(Utils.getKeywordIcon());
+                comp.setRelevance(Utils.DEFAULT_RELEVANCE);
                 completions.add(comp);
             }
                 
@@ -264,6 +268,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                 {
                     VariableCompletion comp = new VariableCompletion(provider, field.getName(), field.getCompleteType().toString());
                     comp.setIcon(Utils.getFieldIcon());
+                    comp.setRelevance(Utils.FIELD_RELEVANCE);
                     completions.add(comp);
                 }
                 catch(CompilerException ex) { ex.printStackTrace(System.err); }
@@ -278,7 +283,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                         {
                             InnerFunction func = InnerFunctionPool.get(field.getTypedValue().getToken());
                             FunctionCompletion cmp =
-                                    new FunctionCompletion(provider, func.getName(), func.hasReturn() ? TypeId.INT.getTypeName() : "void");
+                                    new FunctionCompletion(provider, field.getName(), func.hasReturn() ? TypeId.INT.getTypeName() : "void");
                             LinkedList<ParameterizedCompletion.Parameter> pars = new LinkedList<>();
                             int len = func.getParametersCount();
                             for(int i = 0; i < len; ++i)
@@ -290,6 +295,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                             }
                             cmp.setParams(pars);
                             cmp.setIcon(Utils.getFunctionIcon());
+                            cmp.setRelevance(Utils.FUNCTION_RELEVANCE);
                             completions.add(cmp);
                             
                             /*if(func.getAction() == ScriptToken.BUILD_AT)
@@ -330,6 +336,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                     {
                         VariableCompletion comp = new VariableCompletion(provider, field.getName(), field.getCompleteType().toString());
                         comp.setIcon(Utils.getFieldIcon());
+                        comp.setRelevance(Utils.FIELD_RELEVANCE);
                         completions.add(comp);
                     }
                     catch(CompilerException ex) { ex.printStackTrace(System.err); }
@@ -340,7 +347,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     
     static final void parseCompletion(CompletionProvider provider, List<Completion> completions, Macro macro)
     {
-        FunctionCompletion cmp = new FunctionCompletion(provider, macro.getName(), macro.hasYield() ? TypeId.INT.getTypeName() : "void");
+        MacroCompletion cmp = new MacroCompletion(provider, macro.getName(), macro.hasYield() ? TypeId.INT.getTypeName() : "void");
         LinkedList<ParameterizedCompletion.Parameter> pars = new LinkedList<>();
         int len = macro.getParameterCount();
         for(int i = 0; i < len; ++i)
@@ -352,6 +359,13 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
         }
         cmp.setParams(pars);
         cmp.setIcon(Utils.getMacroIcon());
+        cmp.setRelevance(Utils.MACRO_RELEVANCE);
         completions.add(cmp);
+    }
+    
+    static final PopScriptRootCompletionProvider getRootCompletionProvider()
+    {
+        initGlobalProvider();
+        return globalProvider;
     }
 }

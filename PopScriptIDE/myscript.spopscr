@@ -1,0 +1,46 @@
+namespace utils
+{
+	internal game_turn = GAME_TURN;
+}
+
+namespace self
+{
+	const id = 0;
+	action zoom = ZoomTo;
+	
+	namespace builds
+	{
+		macro GetBuildCount() { yield 10; }
+	}
+}
+
+action zoom_test = self.zoom;
+
+macro default_zoom(int angle) {
+	ZoomTo(0, 128, angle);
+}
+
+const int INITIAL_TURN = 0;
+macro IsInitialTurn() { yield GAME_TURN == INITIAL_TURN; }
+
+main
+{
+	self.zoom(10, 18, 1250);
+	
+	if(utils.game_turn == 0)
+	{
+		
+	}
+	else
+	{
+		
+	}
+
+	every(128, 10)
+	{
+		if(IsInitialTurn())
+		{
+			var x = 10;
+		}
+	}
+}

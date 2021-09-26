@@ -25,17 +25,20 @@ public class PopScriptParser extends AbstractParser
     private final ErrorList errors;
     private final Consumer<ErrorList> actionAfterParse;
     private final PopScriptCompletionProvider completionProvider;
+    private final HelpElementsManager helpElements;
     
     public PopScriptParser(
             FileDocumentReference file,
             ErrorList errors,
             Consumer<ErrorList> actionAfterParse,
-            PopScriptCompletionProvider completionProvider)
+            PopScriptCompletionProvider completionProvider,
+            HelpElementsManager helpElements)
     {
         this.file = Objects.requireNonNull(file);
         this.errors = Objects.requireNonNull(errors);
         this.actionAfterParse = actionAfterParse;
         this.completionProvider = Objects.requireNonNull(completionProvider);
+        this.helpElements = Objects.requireNonNull(helpElements);
         super.setEnabled(true);
     }
     
@@ -47,6 +50,7 @@ public class PopScriptParser extends AbstractParser
             Path filePath = file.hasFile() ? file.getFilePath() : null;
             errors.clear();
             ScriptCompiler.compile(doc.getText(0, doc.getLength()), errors, filePath, completionProvider.getBaseProvider());
+            helpElements.update();
         }
         catch(BadLocationException ex) {}
         

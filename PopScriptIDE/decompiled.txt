@@ -1,92 +1,28 @@
 {
+  DO ZOOM_TO                                  10 18 1250
   IF ( INT_GAME_TURN == 0 )
   {
-    DO SET_ATTACK_VARIABLE                     $0
   }
   ELSE
   {
-    SET $1                                     1
-    MULTIPLY $2 50 $1
-    SET $3                                     $2
-    INCREMENT $3 2
-    SET $2                                     $1
-    INCREMENT $2 $3
-    SET $3                                     INT_M_BUILDING_SMALL_HUT
-    SET $4                                     0
-    SET $5                                     $1
-    INCREMENT $5 3
-    SET $6                                     $1
-    DECREMENT $6 $2
-    IF ( $3 > 2 && $5 < 10 || $6 == 0 )
+  }
+  ENDIF
+  EVERY 129 11
+  {
+    IF ( INT_GAME_TURN == 0 )
     {
-      SET $6                                    $4
-      INCREMENT $6 2
-      MULTIPLY $5 3 $6
-      DO TRAIN_PEOPLE_NOW $5 INT_WARRIOR
-      INCREMENT $4 1
-    }
-    ENDIF
-    IF ( $3 == 2 )
-    {
-      SET $6                                    $1
-      INCREMENT $6 2
-      SET $5                                    $6
+      SET $0                                    1
     }
     ELSE
     {
-      SET $5                                    INT_WARRIOR
+      SET $0                                    0
     }
     ENDIF
-    IF ( $3 > 10 )
+    IF ( $0 != 0 )
     {
-      SET $6                                    $3
-    }
-    ELSE
-    {
-      SET $6                                    10
-    }
-    ENDIF
-    SET $6                                     150
-    IF ( $1 > 10 )
-    {
-      IF ( $1 < 50 )
-      {
-        SET $6                                   $1
-      }
-      ELSE
-      {
-        SET $6                                   50
-      }
-      ENDIF
-    }
-    ELSE
-    {
-      SET $6                                    10
-    }
-    ENDIF
-    SET $6                                     50
-    SET $7                                     0
-    MULTIPLY $8 $6 $2
-    SET $9                                     $8
-    INCREMENT $9 16
-    SET $7                                     $9
-    DECREMENT $4 1
-    INCREMENT $7 $4
-    IF ( INT_GAME_TURN >= 256 )
-    {
-      SET $8                                    1
-    }
-    ELSE
-    {
-      SET $8                                    0
-    }
-    ENDIF
-    IF ( $8 != 0 )
-    {
-      SET $6                                    512
+      SET $0                                    10
     }
     ENDIF
   }
-  ENDIF
 }
 SCRIPT_END

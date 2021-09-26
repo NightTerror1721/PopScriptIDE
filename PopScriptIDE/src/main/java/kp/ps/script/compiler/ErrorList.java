@@ -47,7 +47,7 @@ public final class ErrorList implements Iterable<ErrorList.ErrorEntry>
         DefaultParseResult result = new DefaultParseResult(parser);
         errors.forEach(entry -> {
             String msg = entry.getFilePath() == null
-                    ? "line " + entry.getStartLine() + ":" + entry.getCause().getMessage()
+                    ? "line " + entry.getStartLine() + ": " + entry.getCause().getMessage()
                     : entry.getFilePath() + "(line " + entry.getStartLine() + "): " + entry.getCause().getMessage();
             result.addNotice(new DefaultParserNotice(parser, msg, entry.getStartLine()));
         });

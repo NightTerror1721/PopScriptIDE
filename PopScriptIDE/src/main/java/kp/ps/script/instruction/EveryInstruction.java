@@ -47,7 +47,7 @@ public class EveryInstruction extends Instruction
     public void normalCompile(CompilerState state, CodeManager code) throws CompilerException
     {
         StatementTask periodTask = StatementCompiler.toTask(state, period);
-        StatementTask delayTask = delay != null ? StatementCompiler.toTask(state, period) : null;
+        StatementTask delayTask = delay != null ? StatementCompiler.toTask(state, delay) : null;
         
         code.insertTokenCode(ScriptToken.EVERY);
         Int32 iPeriod = periodTask.constCompile().getConstantValue();
