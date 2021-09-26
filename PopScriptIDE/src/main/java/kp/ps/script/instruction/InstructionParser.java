@@ -51,6 +51,7 @@ public final class InstructionParser
     
     private static Instruction parse(CompilerState state, CodeReader source, CodeParser parser, Instruction prev, ErrorList errors)
     {
+        parser.clearStoredComment();
         int firstLine = source.getCurrentLine();
         try
         {

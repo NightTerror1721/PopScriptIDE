@@ -7,6 +7,8 @@ package kp.ps.script.compiler;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -150,5 +152,12 @@ public final class TypedValue
     public static final TypedValue from(ScriptToken token)
     {
         return BY_TOKEN.getOrDefault(token, null);
+    }
+    
+    public static final List<TypedValue> all()
+    {
+        return Stream.of(ALL)
+                .map(Arrays::asList)
+                .reduce(new LinkedList<>(), (acc, elem) -> { acc.addAll(elem); return acc; });
     }
 }

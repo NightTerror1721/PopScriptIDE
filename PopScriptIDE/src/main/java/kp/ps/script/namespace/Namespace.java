@@ -5,6 +5,8 @@
  */
 package kp.ps.script.namespace;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 import kp.ps.script.ScriptInternal;
@@ -40,6 +42,21 @@ public final class Namespace
     public final Namespace getParent() { return parent; }
     
     public final boolean isGlobal() { return parent == null; }
+    
+    public final Collection<Namespace> getChildrenNamespace()
+    {
+        return Collections.unmodifiableCollection(children.values());
+    }
+    
+    public final Collection<NamespaceField> getFields()
+    {
+        return Collections.unmodifiableCollection(fields.values());
+    }
+    
+    public final Collection<Macro> getMacros()
+    {
+        return Collections.unmodifiableCollection(macros.values());
+    }
     
     public final Namespace getChild(String name)
     {
@@ -113,7 +130,7 @@ public final class Namespace
                 return "<global>";
             return "";
         }
-        return toString(printGlobal) + "." + name;
+        return parent.toString(printGlobal) + "." + name;
     }
     
     @Override
@@ -258,5 +275,10 @@ public final class Namespace
         if(field == null)
             throw new IllegalStateException();
         return field;
+    }
+    
+    public static final Collection<NamespaceField> getAllGlobals()
+    {
+        return Collections.unmodifiableCollection(GLOBALS.values());
     }
 }

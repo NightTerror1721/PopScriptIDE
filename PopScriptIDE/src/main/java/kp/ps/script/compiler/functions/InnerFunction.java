@@ -72,6 +72,8 @@ public class InnerFunction
         return mappedParameters.getOrDefault(name, null);
     }
     
+    public final boolean hasReturn() { return hasReturn; }
+    
     public final void checkParameterTypes(List<StatementValue> args) throws CompilerException
     {
         if(args.size() > parameters.size())

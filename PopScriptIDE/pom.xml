@@ -16,17 +16,22 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.1.1</version>
+            <version>3.1.2</version>
         </dependency>
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>autocomplete</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.2</version>
         </dependency>
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rstaui</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fifesoft</groupId>
+            <artifactId>tokenmakermaker</artifactId>
+            <version>3.1.1</version>
         </dependency>
         
         <dependency>
@@ -37,17 +42,40 @@
     </dependencies>
     
     <build>
-        <finalName>Krampus Populous Editor</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <overwrite>true</overwrite>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <!-- Set a compiler level -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
                 </configuration>
             </plugin>
 
@@ -55,7 +83,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4.1</version>
+                <version>3.3.0</version>
                 <configuration>
                     <!-- get all project dependencies -->
                     <descriptorRefs>
@@ -69,8 +97,8 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Specification-Vendor>PopScriptIDE</Specification-Vendor>
-                            <Implementation-Vendor>PopScriptIDE</Implementation-Vendor>
+                            <Specification-Vendor>Krampus</Specification-Vendor>
+                            <Implementation-Vendor>Krampus</Implementation-Vendor>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -86,5 +114,18 @@
                 </executions>
             </plugin>
         </plugins>
+        
+        <resources>
+            <resource>
+                <directory>resources</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                    <include>**/*.sql</include>
+                    <include>**/*.json</include>
+                    <include>**/*.properties</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

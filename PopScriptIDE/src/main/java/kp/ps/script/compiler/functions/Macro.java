@@ -38,6 +38,7 @@ import kp.ps.utils.ints.Int32;
 public class Macro
 {
     private final String name;
+    private final String description;
     private final Parameter[] params;
     private final Instruction[] instructions;
     private final int firstLine;
@@ -45,9 +46,10 @@ public class Macro
     private final int numOfMandatoryArgs;
     private final boolean hasYield;
     
-    private Macro(String name, Parameter[] pars, Instruction[] instructions, int firstLine, int lastLine)
+    private Macro(String name, String description, Parameter[] pars, Instruction[] instructions, int firstLine, int lastLine)
     {
         this.name = Objects.requireNonNull(name);
+        this.description = prepareDescription(description);
         this.params = Objects.requireNonNull(pars);
         this.instructions = Objects.requireNonNull(instructions);
         this.firstLine = firstLine;
@@ -71,10 +73,13 @@ public class Macro
     }
     
     public final String getName() { return name; }
+    public final String getDescription() { return description; }
     public final int getParameterCount() { return params.length; }
     public final Parameter getParameter(int index) { return params[index]; }
     
     public final Instruction[] getInstructions() { return Arrays.copyOf(instructions, instructions.length); }
+    
+    public final boolean hasYield() { return hasYield; }
     
     public final int getFirstLine() { return firstLine; }
     public final int getLastLine() { return lastLine; }
@@ -166,7 +171,7 @@ public class Macro
             pars[i] = createParameter(type, name, defaultValue);
         }
         
-        return new Macro(ident.toString(), pars, scope.getInstructions(), first, last);
+        return new Macro(ident.toString(), parser.getStoredComment(), pars, scope.getInstructions(), first, last);
     }
     
     private static Parameter createParameter(ParameterType type, String name, StatementValue defaultValue) throws CompilerException
@@ -208,5 +213,27 @@ public class Macro
         }
         
         throw new IllegalStateException();
+    }
+    
+    private static String prepareDescription(String description)
+    {
+        if(description == null)
+            return "";
+        
+        description = description.trim();
+        char[] array = description.toCharArray();
+        int front = 0, back = array.length - 1;
+        
+        for(; front <= back; ++front)
+            if(array[front] != '\n' && array[front] != '\r')
+                break;
+        
+        for(; front <= back; --back)
+            if(array[back] != '\n' && array[back] != '\r')
+                break;
+        
+        if(front > back)
+            return "";
+        return new String(array, front, (back - front) + 1);
     }
 }

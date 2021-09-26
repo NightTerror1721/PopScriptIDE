@@ -165,7 +165,8 @@ public final class CodeReader
     private char move(int to, boolean fix) throws IllegalArgumentException
     {
         if(to < start || to >= size)
-            throw new IllegalArgumentException("Out of range 'to' offset");
+            throw new IllegalArgumentException("Out of range 'to' offset. Valid range is [" +
+                    start + ", " + (size - 1) + "]. But found " + to + ".");
         int line = lcur == null ? 0 : lcur.num-1;
         if(to == index)
         {
@@ -230,6 +231,19 @@ public final class CodeReader
         catch(EOFException ex) {  }
     }
     
+    public final String seekOrEndAndReturn(char c)
+    {
+        StringBuilder sb = new StringBuilder();
+        try
+        {
+            char temp;
+            while((temp = next()) != c)
+                sb.append(temp);
+        }
+        catch(EOFException ex) {}
+        return sb.toString();
+    }
+    
     public final void seekOrEnd(char c0, char c1)
     {
         try { 
@@ -244,6 +258,25 @@ public final class CodeReader
             }
         }
         catch(EOFException ex) {  }
+    }
+    
+    public final String seekOrEndAndReturn(char c0, char c1)
+    {
+        StringBuilder sb = new StringBuilder();
+        try { 
+            for(;;)
+            {
+                char c = next();
+                if(c == c0 && canPeek(1) && peek(1) == c1)
+                {
+                    next();
+                    return sb.toString();
+                }
+                sb.append(c);
+            }
+        }
+        catch(EOFException ex) {}
+        return sb.toString();
     }
     
     public final boolean hasNext() { return source.length != 0 && index < size; }

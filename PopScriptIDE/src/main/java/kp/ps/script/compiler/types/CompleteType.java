@@ -47,6 +47,17 @@ public class CompleteType
     }
     
     @Override
+    public final String toString()
+    {
+        if(type == TypeId.INT)
+            return modifier == TypeModifier.VAR
+                    ? type.getTypeName()
+                    : modifier.getModifierName() + ' ' + type.getTypeName();
+        
+        return type.getTypeName();
+    }
+    
+    @Override
     public final boolean equals(Object o)
     {
         if(this == o)

@@ -5,6 +5,11 @@
  */
 package kp.ps.script;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import static kp.ps.script.Script.NO_COMMANDS;
 import static kp.ps.script.Script.TOKEN_OFFSET;
@@ -123,8 +128,8 @@ public enum ScriptToken
     BOAT_PATROL(74, "BoatPatrol"),
     DEFEND_SHAMEN(75, "DefendShamen"),
     SEND_SHAMEN_DEFENDERS_HOME(76, "SendShamenDefendersHome"),
-    BOAT_TYPE(77, "BOAT_TYPE"),
-    BALLON_TYPE(78, "BALLON_TYPE"),
+    BOAT_TYPE(77, false, true, "BOAT_TYPE"),
+    BALLON_TYPE(78, false, true, "BALLON_TYPE"),
     IS_BUILDING_NEAR(79, "IsBuildingNear"),
     BUILD_AT(80, "BuildAt"),
     SET_SPELL_ENTRY(81, "SetSpellEntry"),
@@ -286,4 +291,41 @@ public enum ScriptToken
     
     public static final ScriptToken fromName(String name) { return BY_NAME.getOrDefault(name, null); }
     public static final ScriptToken fromCode(UInt16 code) { return BY_CODE.getOrDefault(code, null); }
+    
+    public static final void generateFunctionsXml(Path path)
+    {
+        try(BufferedWriter writer = Files.newBufferedWriter(path))
+        {
+            PrintWriter pw = new PrintWriter(writer);
+            pw.println("<functions>");
+            for(ScriptToken token : values())
+            {
+                if(token.isCommand())
+                {
+                    pw.print("  <function>");
+                    pw.print(token.getLangName());
+                    pw.println("</function>");
+                }
+            }
+            pw.println("</functions>");
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace(System.err);
+        }
+    }
+    
+    public static final void generateFunctionsFile(Path path)
+    {
+        try(PrintWriter pw = new PrintWriter(Files.newBufferedWriter(path)))
+        {
+            for(ScriptToken token : values())
+                if(token.isCommand())
+                    pw.println(token.getLangName());
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace(System.err);
+        }
+    }
 }

@@ -26,6 +26,7 @@ public final class CodeParser
 {
     private final CodeQueue accumulated;
     private final CompilerState state;
+    private String storedComment;
     
     public CodeParser(CompilerState state, Fragment last)
     {
@@ -37,12 +38,12 @@ public final class CodeParser
     public final Fragment parseFragment(CodeReader source, boolean isFinishValid, ErrorList errors) throws CompilerException
     {
         Fragment frag = parseFragment0(source, isFinishValid, errors);
-        if(frag != null && frag.isType())
+        if(frag != null && frag.isType() && source.hasNext())
         {
             int lastIndex = source.getCurrentIndex();
             LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
             Fragment nextType = parseFragment0(source, isFinishValid, errors);
-            if(nextType.isType())
+            if(nextType != null && nextType.isType())
                 ((Type) frag).insert((Type) nextType);
             else
             {
@@ -396,12 +397,12 @@ public final class CodeParser
                                 accumulated.enqueue(Operator.fromId(OperatorId.ASSIGNATION_DIVIDE));
                             } break;
                             case '/': {
-                                source.seekOrEnd('\n');
+                                storedComment = source.seekOrEndAndReturn('\n');
                                 if(!flushResult)
                                     break main_switch;
                             } break;
                             case '*': {
-                                source.seekOrEnd('*', '/');
+                                storedComment = source.seekOrEndAndReturn('*', '/');
                                 if(!flushResult)
                                     break main_switch;
                             } break;
@@ -448,6 +449,21 @@ public final class CodeParser
     }
     
     public final void setLast(Fragment last) { accumulated.setLast(last); }
+    
+    public final boolean checkNextOrBacktrack(CodeReader source, CommandId command, ErrorList errors) throws CompilerException
+    {
+        int lastIndex = source.getCurrentIndex();
+        LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
+        Fragment frag = parseFragment0(source, true, errors);
+        if(frag == null || !frag.isCommand() || !Command.is(frag, command))
+        {
+            source.setIndex(lastIndex);
+            accumulated.list.clear();
+            accumulated.list = old;
+            return false;
+        }
+        return true;
+    }
     
     public final Statement parseInlineInstruction(CodeReader source, ErrorList errors, Fragment... preFragments) throws CompilerException
     {
@@ -527,7 +543,7 @@ public final class CodeParser
         {
             if(frag != null)
                 accumulated.setLast(frag);
-            if(frag == Separator.SEMI_COLON)
+            if(frag == Separator.SEMI_COLON || frag == null)
                 break;
             frags.add(frag);
             if(frag.isScope())
@@ -550,7 +566,7 @@ public final class CodeParser
         LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
         accumulated.setLast(args);
         Fragment scope = parseFragment(source, true, errors);
-        if(scope == Separator.SEMI_COLON)
+        if(scope == Separator.SEMI_COLON || scope == null)
             return new FragmentList(args, Scope.EMPTY_SCOPE);
         if(scope.isScope())
             return new FragmentList(args, scope);
@@ -569,7 +585,7 @@ public final class CodeParser
         int lastIndex = source.getCurrentIndex();
         LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
         Fragment scope = parseFragment(source, true, errors);
-        if(scope == Separator.SEMI_COLON)
+        if(scope == Separator.SEMI_COLON || scope == null)
             return new FragmentList(Scope.EMPTY_SCOPE);
         if(scope.isScope())
             return new FragmentList(scope);
@@ -633,6 +649,9 @@ public final class CodeParser
                 return false;
         return true;
     }
+    
+    public final String getStoredComment() { return storedComment; }
+    public final void clearStoredComment() { storedComment = null; }
     
     
     

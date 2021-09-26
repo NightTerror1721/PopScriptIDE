@@ -84,6 +84,13 @@ public abstract class Parameter
             return getDefaultTypedValue().getName();
         else throw new IllegalStateException();
     }
+    
+    public final String getNameWithDefaultValueAsString()
+    {
+        if(!hasDefaultValue())
+            return name;
+        return name + " = " +  getDefaultValueAsString();
+    }
 
     @Override
     public final String toString()

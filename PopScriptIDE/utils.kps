@@ -1,4 +1,7 @@
 
+/*
+	Return the greatest value of x and y.
+*/
 macro max(int x, int y)
 {
 	yield x > y ? x : y;

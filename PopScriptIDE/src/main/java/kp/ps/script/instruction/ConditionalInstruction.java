@@ -131,20 +131,35 @@ public class ConditionalInstruction extends Instruction
         if(args.size() != 1 || !args.isCallArguments())
             throw new CompilerException("Expected valid statement inside 'if' parentheis. 'if(<statement>)...'.");
         
-        return new ConditionalInstruction(first, last, args.getArgument(0).getStatement(), scope);
+        ConditionalInstruction cond = new ConditionalInstruction(first, last, args.getArgument(0).getStatement(), scope);
+        tryParseElse(reader, parser, cond, errors);
+        return cond;
+    }
+    
+    private static void tryParseElse(CodeReader reader, CodeParser parser, ConditionalInstruction cond, ErrorList errors) throws CompilerException
+    {
+        if(parser.checkNextOrBacktrack(reader, CommandId.ELSE, errors))
+        {
+            FragmentList frags = parser.parseCommandScope(reader, Command.fromId(CommandId.ELSE), errors);
+            int last = reader.getCurrentLine();
+
+            cond.insertElsePart(frags.get(0));
+            cond.updateLastLine(last);
+        }
     }
     
     private static void parseElse(CodeReader reader, CodeParser parser, Instruction lastInstruction, ErrorList errors) throws CompilerException
     {
-        if(lastInstruction == null || !(lastInstruction instanceof ConditionalInstruction))
-            throw new CompilerException("Can only put 'else' command after 'if' command.");
+        throw new CompilerException("Can only put 'else' command after 'if' command.");
+        //if(lastInstruction == null || !(lastInstruction instanceof ConditionalInstruction))
+            //throw new CompilerException("Can only put 'else' command after 'if' command.");
         
-        FragmentList frags = parser.parseCommandScope(reader, Command.fromId(CommandId.ELSE), errors);
+        /*FragmentList frags = parser.parseCommandScope(reader, Command.fromId(CommandId.ELSE), errors);
         int last = reader.getCurrentLine();
         
         ConditionalInstruction cond = (ConditionalInstruction) lastInstruction;
         cond.insertElsePart(frags.get(0));
-        cond.updateLastLine(last);
+        cond.updateLastLine(last);*/
     }
 
     /*@Override

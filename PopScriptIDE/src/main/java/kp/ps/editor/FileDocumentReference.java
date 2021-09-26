@@ -3,15 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.script.namespace;
+package kp.ps.editor;
+
+import java.nio.file.Path;
 
 /**
  *
  * @author Marc
  */
-public enum NamespaceFieldType
+public interface FileDocumentReference
 {
-    TYPED_VALUE,
-    INTERNAL,
-    CONSTANT;
+    Path getFilePath();
+    
+    default boolean hasFile() { return getFilePath() != null; }
 }

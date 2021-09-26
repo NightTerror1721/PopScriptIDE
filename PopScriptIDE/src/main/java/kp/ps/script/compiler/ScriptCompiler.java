@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import kp.ps.editor.PopScriptNamespaceCompletionProvider;
 import kp.ps.script.Script;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
@@ -28,42 +29,68 @@ public class ScriptCompiler
 {
     private ScriptCompiler() {}
     
-    public static final Script compile(Path path, ErrorList errors) throws IOException
+    public static final Script compile(Path path, ErrorList errors, PopScriptNamespaceCompletionProvider completionProvider) throws IOException
     {
         try(InputStream input = Files.newInputStream(path))
         {
-            return compile(new CodeReader(input), errors, path);
+            return compile(new CodeReader(input), errors, path, completionProvider);
         }
     }
-    
-    /*public static final Script compile(String code, ErrorList errors)
+    public static final Script compile(Path path, ErrorList errors) throws IOException
     {
-        return compile(new CodeReader(code), errors, null);
+        return compile(path, errors, null);
     }
     
+    public static final Script compile(String code, ErrorList errors, Path fakeSource, PopScriptNamespaceCompletionProvider completionProvider)
+    {
+        return compile(new CodeReader(code), errors, fakeSource, completionProvider);
+    }
+    public static final Script compile(String code, ErrorList errors, Path fakeSource)
+    {
+        return compile(new CodeReader(code), errors, fakeSource, null);
+    }
+    public static final Script compile(String code, ErrorList errors)
+    {
+        return compile(new CodeReader(code), errors, null, null);
+    }
+    
+    public static final Script compile(InputStream input, ErrorList errors, Path fakeSource, PopScriptNamespaceCompletionProvider completionProvider)
+    {
+        return compile(new CodeReader(input), errors, fakeSource, completionProvider);
+    }
+    public static final Script compile(InputStream input, ErrorList errors, Path fakeSource)
+    {
+        return compile(new CodeReader(input), errors, fakeSource, null);
+    }
     public static final Script compile(InputStream input, ErrorList errors)
     {
-        return compile(new CodeReader(input), errors, null);
-    }*/
+        return compile(new CodeReader(input), errors, null, null);
+    }
     
-    private static Script compile(CodeReader source, ErrorList errors, Path mainSource)
+    private static Script compile(CodeReader source, ErrorList errors, Path mainSource, PopScriptNamespaceCompletionProvider completionProvider)
     {
         if(errors == null)
             errors = new ErrorList();
         
-        mainSource = mainSource.toAbsolutePath();
+        if(mainSource != null)
+            mainSource = mainSource.toAbsolutePath();
         
         CompilerState state = new CompilerState(errors);
         CodeManager initCode = new CodeManager();
         CodeManager mainCode = new CodeManager();
         
-        try { state.pushSourceFile(mainSource); }
+        try
+        {
+            if(mainSource != null)
+                state.pushSourceFile(mainSource);
+        }
         catch(CompilerException ex) { throw new IllegalStateException(ex); }
         
         List<Instruction> insts = InstructionParser.parse(state, source, false, errors);
         InstructionCompiler.staticCompile(state, initCode, mainCode, insts);
         
-        state.popSourceFile();
+        if(mainSource != null)
+            state.popSourceFile();
         
         CodeManager code = new CodeManager();
         try
@@ -91,6 +118,9 @@ public class ScriptCompiler
         Script script = new Script();
         state.getFields().insertToScript(script);
         code.insertToScript(script);
+        
+        if(completionProvider != null)
+            completionProvider.fill(state.getNamespace());
         
         state.clear();
         initCode.clear();

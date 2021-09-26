@@ -132,8 +132,8 @@ public final class CompilerState
     
     public final Path getCurrentSourceFile()
     {
-        if(importedSourcesStack.isEmpty())
-            throw new IllegalStateException();
+        //if(importedSourcesStack.isEmpty())
+            //throw new IllegalStateException();
         return importedSourcesStack.peek();
     }
     
