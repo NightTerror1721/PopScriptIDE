@@ -5,6 +5,7 @@
  */
 package kp.ps.editor;
 
+import com.github.weisj.darklaf.settings.ThemeSettings;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,6 +44,8 @@ public class ScriptEditor extends JFrame
         
         initTerminalErrors();
         initHelpTree();
+        
+        Utils.setIcon(this);
         
         pack();
     }
@@ -365,6 +368,7 @@ public class ScriptEditor extends JFrame
         jMenuItem7 = new javax.swing.JMenuItem();
         jSeparator4 = new javax.swing.JPopupMenu.Separator();
         jMenuItem8 = new javax.swing.JMenuItem();
+        jMenuItem19 = new javax.swing.JMenuItem();
         jSeparator5 = new javax.swing.JPopupMenu.Separator();
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -535,6 +539,14 @@ public class ScriptEditor extends JFrame
 
         jMenuItem8.setText("Properties");
         jMenu1.add(jMenuItem8);
+
+        jMenuItem19.setText("Themes");
+        jMenuItem19.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem19ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem19);
         jMenu1.add(jSeparator5);
 
         jMenuItem9.setText("Exit");
@@ -641,6 +653,10 @@ public class ScriptEditor extends JFrame
         load();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
+    private void jMenuItem19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem19ActionPerformed
+        ThemeSettings.showSettingsDialog(this);
+    }//GEN-LAST:event_jMenuItem19ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel errorsPanel;
@@ -658,6 +674,7 @@ public class ScriptEditor extends JFrame
     private javax.swing.JMenuItem jMenuItem16;
     private javax.swing.JMenuItem jMenuItem17;
     private javax.swing.JMenuItem jMenuItem18;
+    private javax.swing.JMenuItem jMenuItem19;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;

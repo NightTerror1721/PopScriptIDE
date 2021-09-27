@@ -93,7 +93,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     @Override
     public List<Completion> getCompletionsAt(JTextComponent tc, Point p)
     {
-        return globalProvider.getCompletionsAt(tc, p);
+        return baseProvider.getCompletionsAt(tc, p);
     }
 
 
@@ -112,7 +112,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
             CompletionProvider provider = baseProvider.getProviderFor(comp);
             if (provider != null)
                 return provider.getCompletions(comp);
-            return globalProvider.getCompletions(comp);
+            return baseProvider.getCompletions(comp);
         }
         return Collections.emptyList();
     }
@@ -130,7 +130,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
 
         CompletionProvider provider = baseProvider.getProviderFor(tc);
         if(provider == null)
-            return globalProvider.getParameterizedCompletions(tc);
+            return baseProvider.getParameterizedCompletions(tc);
         return provider.getParameterizedCompletions(tc);
     }
 
@@ -141,7 +141,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     @Override
     public char getParameterListEnd()
     {
-        return globalProvider.getParameterListEnd();
+        return baseProvider.getParameterListEnd();
     }
 
 
@@ -151,7 +151,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     @Override
     public String getParameterListSeparator()
     {
-        return globalProvider.getParameterListSeparator();
+        return baseProvider.getParameterListSeparator();
     }
 
 
@@ -161,7 +161,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     @Override
     public char getParameterListStart()
     {
-        return globalProvider.getParameterListStart();
+        return baseProvider.getParameterListStart();
     }
 
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><TokenMakerDefinition>
   <general>
-    <package>kp.ps.utils</package>
+    <package>kp.ps.editor</package>
     <className>PopScriptHighlight</className>
     <extendedClass>AbstractJFlexCTokenMaker</extendedClass>
     <classComment/>
@@ -513,8 +513,6 @@
     <operator>!</operator>
     <operator>!=</operator>
     <operator>&amp;&amp;</operator>
-    <operator>(</operator>
-    <operator>)</operator>
     <operator>*</operator>
     <operator>*=</operator>
     <operator>+</operator>
@@ -523,18 +521,16 @@
     <operator>-</operator>
     <operator>--</operator>
     <operator>-=</operator>
-    <operator>.</operator>
     <operator>/</operator>
     <operator>/=</operator>
     <operator>:</operator>
     <operator>&lt;</operator>
     <operator>&lt;=</operator>
+    <operator>=</operator>
     <operator>==</operator>
     <operator>&gt;</operator>
     <operator>&gt;=</operator>
     <operator>?</operator>
-    <operator>{</operator>
     <operator>||</operator>
-    <operator>}</operator>
   </operators>
 </TokenMakerDefinition>

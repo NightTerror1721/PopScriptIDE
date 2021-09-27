@@ -5,6 +5,8 @@
  */
 package kp.ps;
 
+import com.github.weisj.darklaf.LafManager;
+import com.github.weisj.darklaf.theme.DarculaTheme;
 import java.io.IOException;
 import kp.ps.editor.ScriptEditor;
 import kp.ps.utils.Utils;
@@ -17,7 +19,7 @@ public class Main
 {
     public static void main(String[] args) throws IOException, ClassNotFoundException
     {
-        Utils.setDefaultLookAndFeel();
+        LafManager.install(new DarculaTheme());
         Utils.initPopScriptLanguage();
         ScriptEditor.open();
         
@@ -43,9 +45,9 @@ public class Main
             script.read(Path.of("test.dat"));
         }*/
         
-        /*Utils.generateFunctionsFile(Paths.get("functions.txt"));
-        Utils.generateInternalAndTypeValuesFile(Paths.get("elements.txt"));
-        org.fife.tmm.Main.main(args);*/
+        //Utils.generateFunctionsFile(Paths.get("functions.txt"));
+        //Utils.generateInternalAndTypeValuesFile(Paths.get("elements.txt"));
+        //org.fife.tmm.Main.main(args);
         
         
     }

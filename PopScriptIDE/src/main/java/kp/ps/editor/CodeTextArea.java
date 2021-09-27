@@ -8,6 +8,7 @@ package kp.ps.editor;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -23,6 +24,7 @@ import org.fife.rsta.ui.CollapsibleSectionPanel;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.CompletionCellRenderer;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
@@ -108,7 +110,7 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
         cellRenderer.setParamColor(Color.BLUE);
         autoCompletion.setListCellRenderer(cellRenderer);
         
-        autoCompletion.setDescriptionWindowColor(new Color(250, 250, 230));
+        autoCompletion.setDescriptionWindowColor(new Color(41, 49, 52));
         
         autoCompletion.install(this);
         
@@ -129,6 +131,16 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
         RTextScrollPane scroll = new RTextScrollPane(this);
         undoLastAction();
         basePanel.add(scroll);
+        
+        try
+        {
+            Theme theme = Theme.load(Utils.getClasspathResourceAsStream("/kp/ps/editor/themes/main-theme.xml"));
+            theme.apply(this);
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace(System.err);
+        }
     }
     
     public final Path getFile() { return file; }
