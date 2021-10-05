@@ -32,7 +32,7 @@ public enum ScriptFieldType
     
     public static final ScriptFieldType fromValue(int value)
     {
-        return value > 0 && value < VALUES.length ? VALUES[value] : INVALID;
+        return value >= 0 && value < VALUES.length ? VALUES[value] : INVALID;
     }
     
     public static final ScriptFieldType fromValue(UInt32 value)

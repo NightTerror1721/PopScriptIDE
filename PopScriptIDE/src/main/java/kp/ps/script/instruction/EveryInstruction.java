@@ -66,7 +66,7 @@ public class EveryInstruction extends Instruction
             case 2048:
             case 4096:
             case 8192:
-                MemoryAddress.of(iPeriod).compileRead(state, code);
+                MemoryAddress.of(iPeriod.toInt() - 1).compileRead(state, code);
                 break;
                 
             default:
@@ -82,7 +82,7 @@ public class EveryInstruction extends Instruction
                 throw new CompilerException("Invalid delay arg of 'every' command. Excepted value of range [%s, %s] but found %s.",
                         1, iPeriod.toInt() - 1, iDelay);
             
-            MemoryAddress.of(iDelay).compileRead(state, code);
+            MemoryAddress.of(iDelay.toInt() - 1).compileRead(state, code);
         }
         
         StatementCompiler.compileScope(state, code, block);

@@ -1,0 +1,398 @@
+
+namespace Blue
+{
+	tribe id = TRIBE_BLUE;
+
+	internal mana = BLUE_MANA;
+
+	namespace people
+	{
+		internal all 			= BLUE_PEOPLE;
+		internal brave			= B_PERSON_BRAVE;
+		internal warrior 		= B_PERSON_WARRIOR;
+		internal religious 		= B_PERSON_RELIGIOUS;
+		internal spy 			= B_PERSON_SPY;
+		internal firewarrior 	= B_PERSON_FIREWARRIOR;
+		internal shaman 		= B_PERSON_SHAMAN;
+	}
+
+	namespace buildings
+	{
+		internal small_hut 			= B_BUILDING_SMALL_HUT;
+		internal medium_hut 		= B_BUILDING_MEDIUM_HUT;
+		internal large_hut 			= B_BUILDING_LARGE_HUT;
+		internal drum_tower 		= B_BUILDING_DRUM_TOWER;
+		internal temple 			= B_BUILDING_TEMPLE;
+		internal spy_train 			= B_BUILDING_SPY_TRAIN;
+		internal warrior_train 		= B_BUILDING_WARRIOR_TRAIN;
+		internal firewarrior_train 	= B_BUILDING_FIREWARRIOR_TRAIN;
+		internal boat_hut 			= B_BUILDING_BOAT_HUT;
+		internal airship_hut 		= B_BUILDING_AIRSHIP_HUT;
+	}
+
+	namespace vehicles
+	{
+		internal boat 		= B_VEHICLE_BOAT_1;
+		internal airship 	= B_VEHICLE_AIRSHIP_1;
+	}
+}
+
+namespace Red
+{
+	tribe id = TRIBE_RED;
+
+	internal mana = RED_MANA;
+
+	namespace people
+	{
+		internal all 			= RED_PEOPLE;
+		internal brave 		= R_PERSON_BRAVE;
+		internal warrior 		= R_PERSON_WARRIOR;
+		internal religious 		= R_PERSON_RELIGIOUS;
+		internal spy 			= R_PERSON_SPY;
+		internal firewarrior 	= R_PERSON_FIREWARRIOR;
+		internal shaman 		= R_PERSON_SHAMAN;
+	}
+
+	namespace buildings
+	{
+		internal small_hut 			= R_BUILDING_SMALL_HUT;
+		internal medium_hut 		= R_BUILDING_MEDIUM_HUT;
+		internal large_hut 			= R_BUILDING_LARGE_HUT;
+		internal drum_tower 		= R_BUILDING_DRUM_TOWER;
+		internal temple 			= R_BUILDING_TEMPLE;
+		internal spy_train 			= R_BUILDING_SPY_TRAIN;
+		internal warrior_train 		= R_BUILDING_WARRIOR_TRAIN;
+		internal firewarrior_train 	= R_BUILDING_FIREWARRIOR_TRAIN;
+		internal boat_hut 			= R_BUILDING_BOAT_HUT;
+		internal airship_hut 		= R_BUILDING_AIRSHIP_HUT;
+	}
+
+	namespace vehicles
+	{
+		internal boat 		= R_VEHICLE_BOAT_1;
+		internal airship 	= R_VEHICLE_AIRSHIP_1;
+	}
+
+	internal kills_by_human = RED_KILLED_BY_HUMAN;
+}
+
+namespace Yellow
+{
+	tribe id = TRIBE_YELLOW;
+
+	internal mana = YELLOW_MANA;
+
+	namespace people
+	{
+		internal all 			= YELLOW_PEOPLE;
+		internal brave 		= Y_PERSON_BRAVE;
+		internal warrior 		= Y_PERSON_WARRIOR;
+		internal religious 		= Y_PERSON_RELIGIOUS;
+		internal spy 			= Y_PERSON_SPY;
+		internal firewarrior 	= Y_PERSON_FIREWARRIOR;
+		internal shaman 		= Y_PERSON_SHAMAN;
+	}
+
+	namespace buildings
+	{
+		internal small_hut 			= Y_BUILDING_SMALL_HUT;
+		internal medium_hut 		= Y_BUILDING_MEDIUM_HUT;
+		internal large_hut 			= Y_BUILDING_LARGE_HUT;
+		internal drum_tower 		= Y_BUILDING_DRUM_TOWER;
+		internal temple 			= Y_BUILDING_TEMPLE;
+		internal spy_train 			= Y_BUILDING_SPY_TRAIN;
+		internal warrior_train 		= Y_BUILDING_WARRIOR_TRAIN;
+		internal firewarrior_train 	= Y_BUILDING_FIREWARRIOR_TRAIN;
+		internal boat_hut 			= Y_BUILDING_BOAT_HUT;
+		internal airship_hut 		= Y_BUILDING_AIRSHIP_HUT;
+	}
+
+	namespace vehicles
+	{
+		internal boat 		= Y_VEHICLE_BOAT_1;
+		internal airship 	= Y_VEHICLE_AIRSHIP_1;
+	}
+
+	internal kills_by_human = YELLOW_KILLED_BY_HUMAN;
+}
+
+namespace Green
+{
+	tribe id = TRIBE_GREEN;
+
+	internal mana = GREEN_MANA;
+
+	namespace people
+	{
+		internal all 			= GREEN_PEOPLE;
+		internal brave 		= G_PERSON_BRAVE;
+		internal warrior 		= G_PERSON_WARRIOR;
+		internal religious 		= G_PERSON_RELIGIOUS;
+		internal spy 			= G_PERSON_SPY;
+		internal firewarrior 	= G_PERSON_FIREWARRIOR;
+		internal shaman 		= G_PERSON_SHAMAN;
+	}
+
+	namespace buildings
+	{
+		internal small_hut 			= G_BUILDING_SMALL_HUT;
+		internal medium_hut 		= G_BUILDING_MEDIUM_HUT;
+		internal large_hut 			= G_BUILDING_LARGE_HUT;
+		internal drum_tower 		= G_BUILDING_DRUM_TOWER;
+		internal temple 			= G_BUILDING_TEMPLE;
+		internal spy_train 			= G_BUILDING_SPY_TRAIN;
+		internal warrior_train 		= G_BUILDING_WARRIOR_TRAIN;
+		internal firewarrior_train 	= G_BUILDING_FIREWARRIOR_TRAIN;
+		internal boat_hut 			= G_BUILDING_BOAT_HUT;
+		internal airship_hut 		= G_BUILDING_AIRSHIP_HUT;
+	}
+
+	namespace vehicles
+	{
+		internal boat 		= G_VEHICLE_BOAT_1;
+		internal airship 	= G_VEHICLE_AIRSHIP_1;
+	}
+
+	internal kills_by_human = GREEN_KILLED_BY_HUMAN;
+}
+
+namespace Self
+{
+	internal mana = MY_MANA;
+
+	internal shamen_defenders = NUM_SHAMEN_DEFENDERS;
+
+	namespace people
+	{
+		internal all 			= MY_NUM_PEOPLE;
+		internal brave 		= M_PERSON_BRAVE;
+		internal warrior 		= M_PERSON_WARRIOR;
+		internal religious 		= M_PERSON_RELIGIOUS;
+		internal spy 			= M_PERSON_SPY;
+		internal firewarrior 	= M_PERSON_FIREWARRIOR;
+		internal shaman 		= M_PERSON_SHAMAN;
+	}
+
+	namespace buildings
+	{
+		internal small_hut 			= M_BUILDING_SMALL_HUT;
+		internal medium_hut 		= M_BUILDING_MEDIUM_HUT;
+		internal large_hut 			= M_BUILDING_LARGE_HUT;
+		internal drum_tower 		= M_BUILDING_DRUM_TOWER;
+		internal temple 			= M_BUILDING_TEMPLE;
+		internal spy_train 			= M_BUILDING_SPY_TRAIN;
+		internal warrior_train 		= M_BUILDING_WARRIOR_TRAIN;
+		internal firewarrior_train 	= M_BUILDING_FIREWARRIOR_TRAIN;
+		internal boat_hut 			= M_BUILDING_BOAT_HUT;
+		internal airship_hut 		= M_BUILDING_AIRSHIP_HUT;
+	}
+
+	namespace vehicles
+	{
+		internal boat 		= M_VEHICLE_BOAT_1;
+		internal airship 	= M_VEHICLE_AIRSHIP_1;
+	}
+
+	namespace deads
+	{
+		internal by_human 	= MY_NUM_KILLED_BY_HUMAN;
+		internal by_blue 	= MY_NUM_KILLED_BY_BLUE;
+		internal by_red 	= MY_NUM_KILLED_BY_RED;
+		internal by_yellow 	= MY_NUM_KILLED_BY_YELLOW;
+		internal by_green 	= MY_NUM_KILLED_BY_GREEN;
+	}
+
+	namespace kills
+	{
+		internal blue 		= BLUE_KILLED_BY_ME;
+		internal red 		= RED_KILLED_BY_ME;
+		internal yellow 	= YELLOW_KILLED_BY_ME;
+		internal green 	= GREEN_KILLED_BY_ME;
+	}
+
+	namespace spellcost
+	{
+		internal blast 		= M_SPELL_BLAST_COST;
+		internal lightning 		= M_SPELL_LIGHTNING_COST;
+		internal tornado 		= M_SPELL_TORNADO_COST;
+		internal swarm 		= M_SPELL_SWAMP_COST;
+		internal invisibility 	= M_SPELL_INVISIBILITY_COST;
+		internal hypnotism 		= M_SPELL_HYPNOTISM_COST;
+		internal firestorm 		= M_SPELL_FIRESTORM_COST;
+		internal ghost_army 	= M_SPELL_GHOST_ARMY_COST;
+		internal erosion 		= M_SPELL_EROSION_COST;
+		internal swamp 		= M_SPELL_SWAMP_COST;
+		internal land_bridge 	= M_SPELL_LAND_BRIDGE_COST;
+		internal angel_of_dead 	= M_SPELL_ANGEL_OF_DEAD_COST;
+		internal earthquake 	= M_SPELL_EARTHQUAKE_COST;
+		internal flatten 		= M_SPELL_FLATTEN_COST;
+		internal volcano 		= M_SPELL_VOLCANO_COST;
+		internal shield 		= M_SPELL_SHIELD_COST;
+	}
+
+
+	// Attributes //
+	namespace attr
+	{
+		internal away_brave 					= ATTR_AWAY_BRAVE;
+		internal away_firewarrior 				= ATTR_AWAY_FIREWARRIOR;
+		internal away_religious 					= ATTR_AWAY_RELIGIOUS;
+		internal away_shaman 					= ATTR_AWAY_SHAMAN;
+		internal away_spy 						= ATTR_AWAY_SPY;
+		internal away_warrior 					= ATTR_AWAY_WARRIOR;
+		internal base_under_attack_retreat 		= ATTR_BASE_UNDER_ATTACK_RETREAT;
+		internal boat_house_broken 				= ATTR_BOAT_HOUSE_BROKEN;
+		internal count_preach_damage 				= ATTR_COUNT_PREACH_DAMAGE;
+		internal defense_rad_incr 				= ATTR_DEFENSE_RAD_INCR;
+		internal dont_auto_train_preachers 		= ATTR_DONT_AUTO_TRAIN_PREACHERS;
+		internal dont_delete_useless_boat_house 	= ATTR_DONT_DELETE_USELESS_BOAT_HOUSE;
+		internal dont_group_at_dt 				= ATTR_DONT_GROUP_AT_DT;
+		internal dont_use_boats 					= ATTR_DONT_USE_BOATS;
+		internal empty_at_waypoint 				= ATTR_EMPTY_AT_WAYPOING;
+		internal enemy_spy_max_stand 				= ATTR_ENEMY_SPY_MAX_STAND;
+		internal expansion 						= ATTR_EXPANSION;
+		internal fight_stop_distance 				= ATTR_FIGHT_STOP_DISTANCE;
+		internal group_option 					= ATTR_GROUP_OPTION;
+		internal house_percentage 				= ATTR_HOUSE_PERCENTAGE;
+		internal max_attacks 					= ATTR_MAX_ATTACKS;
+		internal max_buildings_on_go 				= ATTR_MAX_BUILDINGS_ON_GO;
+		internal max_defensive_actions 			= ATTR_MAX_DEFENSIVE_ACTIONS;
+		internal max_spy_attacks 				= ATTR_MAX_SPY_ATTACKS;
+		internal max_train_at_once 				= ATTR_MAX_TRAIN_AT_ONCE;
+		internal people_per_balloon 				= ATTR_PEOPLE_PER_BALLON;
+		internal people_per_boat 				= ATTR_PEOPLE_PER_BOAT;
+		internal pref_balloon_drivers 			= ATTR_PREF_BALLON_DRIVERS;
+		internal pref_boat_drivers 				= ATTR_PREF_BOAT_DRIVERS;
+		internal pref_balloon_huts 				= ATTR_PREF_BALLON_HUTS;
+		internal pref_boat_huts 					= ATTR_PREF_BOAT_HUTS;
+		internal pref_firewarrior_people 			= ATTR_PREF_FIREWARRIOR_PEOPLE;
+		internal pref_firewarrior_trains 			= ATTR_PREF_FIREWARRIOR_TRAINS;
+		internal pref_religious_people 			= ATTR_PREF_RELIGIOUS_PEOPLE;
+		internal pref_religious_trains 			= ATTR_PREF_RELIGIOUS_TRAINS;
+		internal pref_spy_people 				= ATTR_PREF_SPY_PEOPLE;
+		internal pref_spy_trains 				= ATTR_PREF_SPY_TRAINS;
+		internal pref_warrior_people 				= ATTR_PREF_WARRIOR_PEOPLE;
+		internal pref_warrior_trains 				= ATTR_PREF_WARRIOR_TRAINS;
+		internal random_build_side 				= ATTR_RANDOM_BUILD_SIDE;
+		internal retreat_value 					= ATTR_RETREAT_VALUE;
+		internal shaman_blast 					= ATTR_SHAMEN_BLAST;
+		internal spare 						= ATTR_SPARE_6;
+		internal spell_delay 					= ATTR_SPELL_DELAY;
+		internal spy_check_frequency 				= ATTR_SPY_CHECK_FREQUENCY;
+		internal spy_discover_chance 				= ATTR_SPY_DISCOVER_CHANGE;
+		internal use_preacher_for_defence 			= ATTR_USE_PREACHER_FOR_DEFENSE;
+	}
+}
+
+namespace Spell
+{
+	internal lightning 		= LIGHTNING_BOLT;
+	internal tornado 		= WHIRLWIND;
+	internal swarm 		= INSECT_PLAGUE;
+	internal invisibility 	= INVISIBILITY;
+	internal hypnotism 		= HYPNOTISM;
+	internal ghost_army 	= GHOST_ARMY;
+	internal erosion 		= EROSION;
+	internal swamp 		= SWAMP;
+	internal land_bridge 	= LAND_BRIDGE;
+	internal angel_of_dead 	= ANGEL_OF_DEAD;
+	internal earthquake 	= EARTHQUAKE;
+	internal flatten 		= FLATTEN;
+	internal volcano 		= VOLCANO;
+	internal armageddon 	= WRATH_OF_GOD;
+	internal shield 		= SHIELD;
+	internal convert 		= CONVERT;
+	internal teleport 		= TELEPORT;
+	internal bloodlust 		= BLOODLUST;
+
+	internal no_specific	= NO_SPECIFIC_SPELL;
+}
+
+namespace Follower
+{
+	internal brave 		= BRAVE;
+	internal religious 		= RELIGIOUS;
+	internal spy 			= SPY;
+	internal firewarrior 	= FIREWARRIOR;
+	internal shaman 		= SHAMAN;
+
+	internal no_specific 	= NO_SPECIFIC_PERSON;
+}
+
+namespace Building
+{
+	internal small_hut 			= SMALL_HUT;
+	internal medium_hut 		= MEDIUM_HUT;
+	internal large_hut 			= LARGE_HUT;
+	internal drum_tower 		= DRUM_TOWER;
+	internal temple 			= TEMPLE;
+	internal spy_train 			= SPY_TRAIN;
+	internal warrior_train 		= WARRIOR_TRAIN;
+	internal firewarrior_train 	= FIREWARRIOR_TRAIN;
+	internal boat_hut 			= BOAT_HUT;
+	internal airship_hut 		= AIRSHIP_HUT;
+
+	internal no_specific		= NO_SPECIFIC_BUILDING;
+}
+
+namespace Camera
+{
+	internal angle = CAMERA_ANGLE;
+	internal x = CAMERA_X;
+	internal z = CAMERA_Z;
+}
+
+
+
+
+const TRUE = 1;
+const FALSE = 0;
+
+internal GameTurn = GAME_TURN;
+
+macro GetFreeEntries() { yield CP_FREE_ENTRIES; }
+
+macro Random100() { yield RANDOM_100; }
+
+macro set(int reference, int value) { reference = value; }
+
+macro add(int a, int b) { yield a + b; }
+macro sub(int a, int b) { yield a - b; }
+macro mul(int a, int b) { yield a * b; }
+macro div(int a, int b) { yield a / b; }
+
+macro max(int a, int b)
+{
+	if(a > b)
+		yield a;
+	else yield b;
+}
+
+macro min(int a, int b)
+{
+	if(a < b)
+		yield a;
+	else yield b;
+}
+
+macro clamp(int value, int minValue, int maxValue)
+{
+	yield min(maxValue, max(minValue, value));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

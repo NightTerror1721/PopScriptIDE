@@ -141,7 +141,7 @@
     <keyword>GREEN_KILLED_BY_ME</keyword>
     <keyword>GREEN_MANA</keyword>
     <keyword>GREEN_PEOPLE</keyword>
-    <keyword>GREEN_RED_KILLED_BY_HUMAN</keyword>
+    <keyword>GREEN_KILLED_BY_HUMAN</keyword>
     <keyword>GUARD_NORMAL</keyword>
     <keyword>GUARD_WITH_GHOSTS</keyword>
     <keyword>G_BUILDING_AIRSHIP_HUT</keyword>
@@ -233,7 +233,7 @@
     <keyword>RED_KILLED_BY_ME</keyword>
     <keyword>RED_MANA</keyword>
     <keyword>RED_PEOPLE</keyword>
-    <keyword>RED_RED_KILLED_BY_HUMAN</keyword>
+    <keyword>RED_KILLED_BY_HUMAN</keyword>
     <keyword>RELIGIOUS</keyword>
     <keyword>R_BUILDING_AIRSHIP_HUT</keyword>
     <keyword>R_BUILDING_AIRSHIP_HUT_2</keyword>
@@ -283,7 +283,7 @@
     <keyword>YELLOW_KILLED_BY_ME</keyword>
     <keyword>YELLOW_MANA</keyword>
     <keyword>YELLOW_PEOPLE</keyword>
-    <keyword>YELLOW_RED_KILLED_BY_HUMAN</keyword>
+    <keyword>YELLOW_KILLED_BY_HUMAN</keyword>
     <keyword>Y_BUILDING_AIRSHIP_HUT</keyword>
     <keyword>Y_BUILDING_AIRSHIP_HUT_2</keyword>
     <keyword>Y_BUILDING_BOAT_HUT</keyword>

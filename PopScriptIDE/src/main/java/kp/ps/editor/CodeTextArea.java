@@ -153,8 +153,11 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
     {
         int len = pages.getTabCount();
         for(int i=0;i<len;i++)
-            if(pages.getComponentAt(i) == basePanel)
+        {
+            Component panel = pages.getComponentAt(i);
+            if(panel != null && ((JPanel) pages.getComponentAt(i)).getComponent(0) == basePanel)
                 return i;
+        }
         return -1;
     }
     

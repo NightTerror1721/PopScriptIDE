@@ -94,7 +94,7 @@ public class HelpElementsManager
             tree.setShowsRootHandles(true);
             model.nodeStructureChanged(rootNode);
             
-            PopScriptRootCompletionProvider globalsProvider = PopScriptCompletionProvider.getRootCompletionProvider();
+            PopScriptBaseCompletionProvider globalsProvider = PopScriptCompletionProvider.getRootCompletionProvider();
             DefaultMutableTreeNode fields = new DefaultMutableTreeNode(ICON_GLOBAL_FIELDS, true);
             DefaultMutableTreeNode functions = new DefaultMutableTreeNode(ICON_GLOBAL_FUNCTIONS, true);
 

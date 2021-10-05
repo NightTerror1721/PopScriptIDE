@@ -8,7 +8,12 @@ package kp.ps;
 import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.theme.DarculaTheme;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import kp.ps.editor.ScriptEditor;
+import kp.ps.script.ScriptInternal;
+import kp.ps.script.ScriptToken;
 import kp.ps.utils.Utils;
 
 /**
@@ -50,5 +55,57 @@ public class Main
         //org.fife.tmm.Main.main(args);
         
         
+    }
+    
+    
+    private static void printTokens() throws IOException
+    {
+        try(PrintWriter pw = new PrintWriter(Files.newBufferedWriter(Paths.get("tokens.txt"))))
+        {
+            for(ScriptToken token : ScriptToken.values())
+                pw.append("case ").append(token.getLangName()).append(": \"").append(token.getLangName()).println("\";");
+        }
+    }
+    
+    private static void printInternals() throws IOException
+    {
+        try(PrintWriter pw = new PrintWriter(Files.newBufferedWriter(Paths.get("internals.txt"))))
+        {
+            for(ScriptInternal internal : ScriptInternal.values())
+            {
+                String name = parsePrefix(internal.getInternalName());
+                pw.append("case ").append(parseName(name)).append(": \"").append(name).println("\";");
+            }
+        }
+    }
+    
+    private static String parsePrefix(String name)
+    {
+        if(name.startsWith("M_"))
+            name = "MY_" + name.substring(2);
+        else if(name.startsWith("B_"))
+            name = "BLUE_" + name.substring(2);
+        else if(name.startsWith("R_"))
+            name = "RED_" + name.substring(2);
+        else if(name.startsWith("Y_"))
+            name = "YELLOW_" + name.substring(2);
+        else if(name.startsWith("G_"))
+            name = "GREEN_" + name.substring(2);
+        
+        return name;
+    }
+    
+    private static String parseName(String name)
+    {
+        StringBuilder sb = new StringBuilder(name.length());
+        char[] chars = name.toCharArray();
+        for(int i = 0; i < chars.length; ++i)
+        {
+            if(i == 0 || chars[i - 1] == '_' && Character.isAlphabetic(chars[i]))
+                sb.append(chars[i]);
+            else if(chars[i] == '_');
+            else sb.append(Character.toLowerCase(chars[i]));
+        }
+        return sb.toString();
     }
 }

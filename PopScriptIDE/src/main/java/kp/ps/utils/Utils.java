@@ -56,12 +56,6 @@ public final class Utils
     private static Icon ICON_KEYWORD;
     private static Icon ICON_FOLDER;
     
-    public static final int DEFAULT_RELEVANCE = 0;
-    public static final int NAMESPACE_RELEVANCE = 1;
-    public static final int FUNCTION_RELEVANCE = 2;
-    public static final int MACRO_RELEVANCE = 3;
-    public static final int FIELD_RELEVANCE = 4;
-    
     
     public static byte clamp(byte value, int min, int max)
     {

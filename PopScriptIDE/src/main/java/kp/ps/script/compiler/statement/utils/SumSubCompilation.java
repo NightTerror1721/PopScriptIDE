@@ -66,7 +66,15 @@ public class SumSubCompilation implements StatementTask
                     return MemoryAddress.of(constOperation(left.getConstantValue(), right.getConstantValue()));
 
                 if(!retloc.equals(left))
-                    StatementTaskUtils.assignation(retloc, left).normalCompile(state, code);
+                {
+                    if(retloc.equals(right))
+                    {
+                        MemoryAddress aux = left;
+                        left = right;
+                        right = aux;
+                    }
+                    else StatementTaskUtils.assignation(retloc, left).normalCompile(state, code);
+                }
 
                 code.insertTokenCode(sumMode ? ScriptToken.INCREMENT : ScriptToken.DECREMENT);
                 retloc.compileWrite(state, code);

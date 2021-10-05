@@ -1,28 +1,303 @@
 {
-  DO ZOOM_TO                                  10 18 1250
   IF ( INT_GAME_TURN == 0 )
   {
+    DO AUTO_MESSAGES                           ON
+    DO EXTRA_WOOD_COLLECTION                   OFF
+    DO FLYBY_ALLOW_INTERRUPT                   OFF
+    DO GIVE_UP_AND_SULK                        OFF
+    DO SET_AUTO_BUILD                          OFF
+    DO SET_AUTO_HOUSE                          ON
+    DO SET_BUCKET_USAGE                        ON
+    DO SET_REINCARNATION                       ON
+    DO STATE_AUTO_ATTACK                       OFF
+    DO STATE_STATE_BRING_NEW_PEOPLE_BACK       OFF
+    DO STATE_BUILD_VEHICLE                     OFF
+    DO STATE_CONSTRUCT_BUILDING                OFF
+    DO STATE_DEFEND_BASE                       ON
+    DO STATE_DEFEND                            ON
+    DO STATE_FETCH_FAR_VEHICLE                 OFF
+    DO STATE_FETCH_LOST_PEOPLE                 OFF
+    DO STATE_FETCH_LOST_VEHICLE                OFF
+    DO STATE_FETCH_WOOD                        ON
+    DO STATE_FIREWARRIOR_DEFEND                OFF
+    DO STATE_HOUSE_A_PERSON                    ON
+    DO STATE_POPULATE_DRUM_TOWER               ON
+    DO STATE_PREACH                            OFF
+    DO STATE_SEND_GHOSTS                       OFF
+    DO STATE_SHAMAN_GET_WILDS                  OFF
+    DO STATE_TRAIN_PEOPLE                      OFF
+    DO TURN_PUSH                               OFF
+    SET INT_ATTR_ATTACK_PERCENTAGE             0
+    SET INT_ATTR_MAX_ATTACKS                   999
+    SET INT_ATTR_AWAY_SHAMAN                   0
+    SET INT_ATTR_AWAY_BRAVE                    100
+    SET INT_ATTR_AWAY_WARRIOR                  0
+    SET INT_ATTR_AWAY_FIREWARRIOR              0
+    SET INT_ATTR_AWAY_RELIGIOUS                0
+    SET INT_ATTR_AWAY_SPY                      0
+    SET INT_ATTR_MAX_SPY_ATTACKS               0
+    SET INT_ATTR_PEOPLE_PER_BOAT               0
+    SET INT_ATTR_PEOPLE_PER_BALLOON            0
+    SET INT_ATTR_HOUSE_PERCENTAGE              0
+    SET INT_ATTR_EXPANSION                     20
+    SET INT_ATTR_MAX_BUILDINGS_ON_GO           3
+    SET INT_ATTR_MAX_TRAIN_AT_ONCE             5
+    SET INT_ATTR_PREF_WARRIOR_TRAINS           0
+    SET INT_ATTR_PREF_FIREWARRIOR_TRAINS       0
+    SET INT_ATTR_PREF_RELIGIOUS_TRAINS         0
+    SET INT_ATTR_PREF_SPY_TRAINS               0
+    SET INT_ATTR_PREF_BOAT_HUTS                0
+    SET INT_ATTR_PREF_BALLOON_HUTS             0
+    SET INT_ATTR_PREF_WARRIOR_PEOPLE           0
+    SET INT_ATTR_PREF_FIREWARRIOR_PEOPLE       0
+    SET INT_ATTR_PREF_RELIGIOUS_PEOPLE         0
+    SET INT_ATTR_PREF_SPY_PEOPLE               0
+    SET INT_ATTR_PREF_BOAT_DRIVERS             0
+    SET INT_ATTR_PREF_BALLOON_DRIVERS          0
+    DO SET_DEFENCE_RADIUS                      7
+    SET INT_ATTR_DEFENSE_RAD_INCR              3
+    SET INT_ATTR_MAX_DEFENSIVE_ACTIONS         5
+    SET INT_ATTR_USE_PREACHER_FOR_DEFENCE      0
+    SET INT_ATTR_BASE_UNDER_ATTACK_RETREAT     0
+    SET INT_ATTR_COUNT_PREACH_DAMAGE           1
+    SET INT_ATTR_DONT_AUTO_TRAIN_PREACHERS     0
+    SET INT_ATTR_DONT_DELETE_USELESS_BOAT_HOUSE 0
+    SET INT_ATTR_DONT_GROUP_AT_DT              0
+    SET INT_ATTR_DONT_USE_BOATS                0
+    SET INT_ATTR_EMPTY_AT_WAYPOINT             0
+    SET INT_ATTR_ENEMY_SPY_MAX_STAND           255
+    SET INT_ATTR_FIGHT_STOP_DISTANCE           0
+    SET INT_ATTR_GROUP_OPTION                  0
+    SET INT_ATTR_RANDOM_BUILD_SIDE             0
+    SET INT_ATTR_SHAMEN_BLAST                  128
+    SET INT_ATTR_RETREAT_VALUE                 50
+    SET INT_ATTR_SPY_CHECK_FREQUENCY           0
+    SET INT_ATTR_SPY_DISCOVER_CHANCE           30
+    DO DELAY_MAIN_DRUM_TOWER
+    DO SET_DRUM_TOWER_POS                      42 18
+    DO SET_MARKER_ENTRY                        0 0 1 4 0 0 0
+    DO SET_MARKER_ENTRY                        1 2 -1 2 0 0 0
+    SET $0                                     0
+    SET $1                                     0
+    SET $2                                     0
+    SET $3                                     0
+    SET $4                                     0
+    SET $5                                     0
+    SET $6                                     0
+    SET $7                                     0
+    DO SET_ATTACK_VARIABLE                     $0
+    DO DISABLE_USER_INPUTS
+    DO STATE_SPELL_DEFENCE                     32 34 ON
   }
   ELSE
   {
+    EVERY 256 133
+    {
+      IF ( INT_MY_NUM_PEOPLE < 80 )
+      {
+        DO SET_BUCKET_USAGE                      ON
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_BLAST                 8
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_CONVERT               8
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SWARM                 32
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_INVISIBILITY          40
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SHIELD                48
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_LAND_BRIDGE           66
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_LIGHTNING             64
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_HYPNOTISM             70
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_TORNADO               72
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SWAMP                 80
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_FLATTEN               100
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_EARTHQUAKE            140
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_EROSION               168
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_FIRESTORM             320
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_ANGEL_OF_DEATH        408
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_VOLCANO               640
+      }
+      ELSE
+      {
+        DO SET_BUCKET_USAGE                      ON
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_BLAST                 4
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_CONVERT               4
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SWARM                 16
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_INVISIBILITY          20
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SHIELD                24
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_LAND_BRIDGE           33
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_LIGHTNING             32
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_HYPNOTISM             35
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_TORNADO               36
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_SWAMP                 40
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_FLATTEN               50
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_EARTHQUAKE            70
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_EROSION               84
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_FIRESTORM             180
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_ANGEL_OF_DEATH        204
+        DO SET_BUCKET_COUNT_FOR_SPELL INT_VOLCANO               320
+      }
+      ENDIF
+    }
+    EVERY 32
+    {
+      IF ( $1 == 0 )
+      {
+        SET $1                                   1
+        DO MARKER_ENTRIES                        0 1 -1 -1
+        DO BUILD_DRUM_TOWER                      40 18
+      }
+      ENDIF
+      IF ( $4 == 0 && INT_M_PERSON_BRAVE <= 6 && INT_M_BUILDING_LARGE_HUT == 0 && INT_M_BUILDING_MEDIUM_HUT == 0 && INT_M_BUILDING_SMALL_HUT == 0 )
+      {
+        SET $4                                   1
+        DO GIVE_UP_AND_SULK                      ON
+      }
+      ENDIF
+    }
+    EVERY 128
+    {
+      IF ( $3 == 0 )
+      {
+        IF ( INT_B_PERSON_BRAVE >= 16 )
+        {
+          SET $3                                  1
+          DO GIVE_ONE_SHOT INT_LAND_BRIDGE RED
+          DO STATE_AUTO_ATTACK                    ON
+          SET INT_ATTR_AWAY_SHAMAN                1
+          DO ATTACK BLUE 6 ATTACK_BUILDING INT_NO_SPECIFIC_BUILDING 999 INT_LAND_BRIDGE INT_NO_SPECIFIC_SPELL INT_NO_SPECIFIC_SPELL ATTACK_NORMAL 0 5 6 -1
+          SET INT_ATTR_AWAY_SHAMAN                0
+        }
+        ENDIF
+      }
+      ELSE
+      {
+        INCREMENT $2 1
+        IF ( $3 == 1 )
+        {
+          IF ( $2 >= 18 && INT_M_PERSON_BRAVE > 11 && $4 == 0 )
+          {
+            SET $3                                 2
+            SET $2                                 0
+            DO ATTACK BLUE 8 ATTACK_BUILDING INT_NO_SPECIFIC_BUILDING 999 INT_LAND_BRIDGE INT_NO_SPECIFIC_SPELL INT_NO_SPECIFIC_SPELL ATTACK_NORMAL 0 5 -1 -1
+          }
+          ENDIF
+        }
+        ELSE
+        {
+          IF ( $3 == 2 )
+          {
+            IF ( $2 >= 22 && INT_M_PERSON_BRAVE > 15 && $4 == 0 )
+            {
+              SET $3                                1
+              SET $2                                0
+              DO ATTACK BLUE 10 ATTACK_BUILDING INT_NO_SPECIFIC_BUILDING 999 INT_LAND_BRIDGE INT_NO_SPECIFIC_SPELL INT_NO_SPECIFIC_SPELL ATTACK_NORMAL 0 5 -1 -1
+            }
+            ENDIF
+          }
+          ENDIF
+        }
+        ENDIF
+      }
+      ENDIF
+    }
+    EVERY 32
+    {
+      IF ( $5 == 0 )
+      {
+        DO GET_HEAD_TRIGGER_COUNT 6 242 $6
+        IF ( $6 == 0 )
+        {
+          SET $5                                  1
+          DO CREATE_MSG_INFORMATION_ZOOM          79 64 208 1000
+        }
+        ENDIF
+      }
+      ELSE
+      {
+        IF ( $5 == 1 )
+        {
+          DO GET_HEAD_TRIGGER_COUNT 64 204 $6
+          IF ( $6 == 0 )
+          {
+            SET $5                                 2
+            DO CREATE_MSG_INFORMATION_ZOOM         80 26 230 1500
+          }
+          ENDIF
+        }
+        ELSE
+        {
+          IF ( $5 == 2 )
+          {
+            DO GET_HEAD_TRIGGER_COUNT 24 230 $6
+            IF ( $6 == 0 )
+            {
+              SET $5                                3
+              DO CREATE_MSG_INFORMATION             81
+            }
+            ENDIF
+          }
+          ELSE
+          {
+            IF ( $5 == 3 )
+            {
+              DO GET_HEIGHT_AT_POS                  7 $6
+              IF ( $6 <= 1000 )
+              {
+                SET $5                               4
+                DO CREATE_MSG_INFORMATION_ZOOM       82 54 254 1750
+              }
+              ENDIF
+            }
+            ENDIF
+          }
+          ENDIF
+        }
+        ENDIF
+      }
+      ENDIF
+    }
+    EVERY 128
+    {
+      IF ( $5 == 4 )
+      {
+        SET $5                                   5
+      }
+      ELSE
+      {
+        IF ( $5 == 5 )
+        {
+          SET $5                                  6
+          DO CREATE_MSG_INFORMATION               83
+        }
+        ENDIF
+      }
+      ENDIF
+    }
+    EVERY 8
+    {
+      IF ( INT_GAME_TURN > 70 )
+      {
+        IF ( $7 == 0 )
+        {
+          SET $7                                  1
+          DO CREATE_MSG_NARRATIVE                 78
+          DO SET_MSG_AUTO_OPEN_DLG
+          DO SET_MSG_DELETE_ON_OK
+          DO ENABLE_USER_INPUTS
+          DO FLYBY_CREATE_NEW
+          DO FLYBY_SET_EVENT_POS                  6 242 4 50
+          DO FLYBY_SET_EVENT_POS                  64 204 75 80
+          DO FLYBY_SET_EVENT_POS                  44 20 175 80
+          DO FLYBY_SET_EVENT_POS                  2 222 275 80
+          DO FLYBY_SET_EVENT_ANGLE                200 4 50
+          DO FLYBY_SET_EVENT_ANGLE                850 75 70
+          DO FLYBY_SET_EVENT_ANGLE                1600 175 70
+          DO FLYBY_SET_EVENT_ANGLE                250 280 70
+          DO FLYBY_SET_END_TARGET                 2 222 250 0
+          DO FLYBY_START
+        }
+        ENDIF
+      }
+      ENDIF
+    }
   }
   ENDIF
-  EVERY 129 11
-  {
-    IF ( INT_GAME_TURN == 0 )
-    {
-      SET $0                                    1
-    }
-    ELSE
-    {
-      SET $0                                    0
-    }
-    ENDIF
-    IF ( $0 != 0 )
-    {
-      SET $0                                    10
-    }
-    ENDIF
-  }
 }
 SCRIPT_END

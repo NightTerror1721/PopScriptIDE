@@ -8,7 +8,6 @@ package kp.ps.editor;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -19,13 +18,12 @@ import kp.ps.script.namespace.Namespace;
 import kp.ps.utils.Utils;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
-import org.fife.ui.autocomplete.DefaultCompletionProvider;
 
 /**
  *
  * @author Marc
  */
-public class PopScriptNamespaceCompletionProvider extends DefaultCompletionProvider
+public class PopScriptNamespaceCompletionProvider extends PopScriptBaseCompletionProvider
 {
     private final HashMap<String, PopScriptNamespaceCompletionProvider> children = new HashMap<>();
     
@@ -40,7 +38,6 @@ public class PopScriptNamespaceCompletionProvider extends DefaultCompletionProvi
         setParent(parent);
     }
     
-    final List<Completion> getCompletions() { return completions; }
     final Map<String, PopScriptNamespaceCompletionProvider> getChildren()
     {
         return Collections.unmodifiableMap(children);

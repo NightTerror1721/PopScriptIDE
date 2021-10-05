@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.Objects;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -25,6 +26,7 @@ import kp.ps.script.Script;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.ErrorList.ErrorEntry;
 import kp.ps.script.compiler.ScriptCompiler;
+import kp.ps.script.decompiler.ScriptDecompiler;
 import kp.ps.utils.Utils;
 import org.fife.ui.autocomplete.Completion;
 
@@ -52,8 +54,10 @@ public class ScriptEditor extends JFrame
     
     public static final void open()
     {
-        ScriptEditor editor = new ScriptEditor();
-        editor.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            ScriptEditor editor = new ScriptEditor();
+            editor.setVisible(true);
+        });
     }
     
     private CodeTextArea createNewPage(String title)
@@ -76,7 +80,7 @@ public class ScriptEditor extends JFrame
             area.setFile(file);
             area.setTitle(Utils.getFileName(file));
             area.clearChanges();
-            JOptionPane.showMessageDialog(this, "The file has been saved successfully!");
+            //JOptionPane.showMessageDialog(this, "The file has been saved successfully!");
         }
         catch(IOException ex)
         {
@@ -235,6 +239,38 @@ public class ScriptEditor extends JFrame
     private void compileAndExport()
     {
         compileAndExport(getSelectedTextArea());
+    }
+    
+    private void importCompiled()
+    {
+        Path file = FileChooser.importCompiled(this);
+        if(file == null)
+            return;
+        
+        String name = Utils.getFileName(file);
+        CodeTextArea area = createNewPage(name);
+        
+        try
+        {
+            Script script = new Script();
+            script.read(file);
+            
+            String code = ScriptDecompiler.decompile(script);
+            
+            area.setText(code);
+            area.setCaretPosition(0);
+            area.updateTabTitle();
+            if(getTextAreaCount() > 1)
+                pages.setSelectedIndex(getTextAreaCount() - 1);
+            
+        }
+        catch(IOException ex)
+        {
+            area.destroy();
+            ex.printStackTrace(System.err);
+            JOptionPane.showMessageDialog(this, "An error occurred while importing the file.\n" + ex.getMessage(),
+                    "Loading Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private CodeTextArea getTextArea(int index)
@@ -482,6 +518,7 @@ public class ScriptEditor extends JFrame
 
         jMenu1.setText("File");
 
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem1.setText("New Script");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -491,6 +528,7 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jMenuItem1);
         jMenu1.add(jSeparator1);
 
+        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem2.setText("Open Script");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -501,6 +539,11 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jSeparator2);
 
         jMenuItem3.setText("Import Compiled Script");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem3);
 
         jMenuItem4.setText("Compile and Export Script");
@@ -512,6 +555,7 @@ public class ScriptEditor extends JFrame
         jMenu1.add(jMenuItem4);
         jMenu1.add(jSeparator3);
 
+        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem5.setText("Save Script");
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -520,6 +564,7 @@ public class ScriptEditor extends JFrame
         });
         jMenu1.add(jMenuItem5);
 
+        jMenuItem6.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem6.setText("Save all Scripts");
         jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -578,6 +623,7 @@ public class ScriptEditor extends JFrame
         jMenu2.add(jMenuItem14);
         jMenu2.add(jSeparator7);
 
+        jMenuItem15.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem15.setText("Compile");
         jMenuItem15.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -656,6 +702,10 @@ public class ScriptEditor extends JFrame
     private void jMenuItem19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem19ActionPerformed
         ThemeSettings.showSettingsDialog(this);
     }//GEN-LAST:event_jMenuItem19ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        importCompiled();
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

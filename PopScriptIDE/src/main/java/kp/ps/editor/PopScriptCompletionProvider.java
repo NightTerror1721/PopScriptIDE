@@ -20,6 +20,7 @@ import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.namespace.Namespace;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.script.parser.CommandId;
+import kp.ps.utils.Relevance;
 import kp.ps.utils.Utils;
 import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.Completion;
@@ -38,7 +39,7 @@ import org.fife.ui.rtextarea.ToolTipSupplier;
  */
 public class PopScriptCompletionProvider extends CompletionProviderBase implements ToolTipSupplier
 {
-    private static PopScriptRootCompletionProvider globalProvider;
+    private static PopScriptBaseCompletionProvider globalProvider;
     
     private final PopScriptNamespaceCompletionProvider baseProvider;
 
@@ -233,7 +234,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
     {
         if(globalProvider == null)
         {
-            globalProvider = new PopScriptRootCompletionProvider();
+            globalProvider = new PopScriptBaseCompletionProvider();
             LinkedList<Completion> completions = new LinkedList<>();
             Namespace.getAllGlobals().forEach(field -> parseCompletion(globalProvider, completions, field));
             
@@ -241,7 +242,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
             {
                 BasicCompletion comp = new BasicCompletion(globalProvider, type.getTypeName());
                 comp.setIcon(Utils.getKeywordIcon());
-                comp.setRelevance(Utils.DEFAULT_RELEVANCE);
+                comp.setRelevance(Relevance.DEFAULT.ordinal());
                 completions.add(comp);
             }
             
@@ -249,7 +250,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
             {
                 BasicCompletion comp = new BasicCompletion(globalProvider, cmd.getCommandName());
                 comp.setIcon(Utils.getKeywordIcon());
-                comp.setRelevance(Utils.DEFAULT_RELEVANCE);
+                comp.setRelevance(Relevance.DEFAULT.ordinal());
                 completions.add(comp);
             }
                 
@@ -268,7 +269,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                 {
                     VariableCompletion comp = new VariableCompletion(provider, field.getName(), field.getCompleteType().toString());
                     comp.setIcon(Utils.getFieldIcon());
-                    comp.setRelevance(Utils.FIELD_RELEVANCE);
+                    comp.setRelevance(Relevance.FIELD.ordinal());
                     completions.add(comp);
                 }
                 catch(CompilerException ex) { ex.printStackTrace(System.err); }
@@ -295,7 +296,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                             }
                             cmp.setParams(pars);
                             cmp.setIcon(Utils.getFunctionIcon());
-                            cmp.setRelevance(Utils.FUNCTION_RELEVANCE);
+                            cmp.setRelevance(Relevance.FUNCTION.ordinal());
                             completions.add(cmp);
                             
                             /*if(func.getAction() == ScriptToken.BUILD_AT)
@@ -336,7 +337,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
                     {
                         VariableCompletion comp = new VariableCompletion(provider, field.getName(), field.getCompleteType().toString());
                         comp.setIcon(Utils.getFieldIcon());
-                        comp.setRelevance(Utils.FIELD_RELEVANCE);
+                        comp.setRelevance(Relevance.FIELD.ordinal());
                         completions.add(comp);
                     }
                     catch(CompilerException ex) { ex.printStackTrace(System.err); }
@@ -359,11 +360,11 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
         }
         cmp.setParams(pars);
         cmp.setIcon(Utils.getMacroIcon());
-        cmp.setRelevance(Utils.MACRO_RELEVANCE);
+        cmp.setRelevance(Relevance.MACRO.ordinal());
         completions.add(cmp);
     }
     
-    static final PopScriptRootCompletionProvider getRootCompletionProvider()
+    static final PopScriptBaseCompletionProvider getRootCompletionProvider()
     {
         initGlobalProvider();
         return globalProvider;
