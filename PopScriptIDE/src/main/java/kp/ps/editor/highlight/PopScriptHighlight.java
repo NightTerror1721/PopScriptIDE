@@ -3,7 +3,7 @@
 /*
  * Generated on 9/28/21, 12:19 PM
  */
-package kp.ps.editor;
+package kp.ps.editor.highlight;
 
 import java.io.*;
 import javax.swing.text.Segment;

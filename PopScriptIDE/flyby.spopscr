@@ -34,7 +34,7 @@ namespace Flyby
 			FlybySetEventZoom(zoom_level, start_at, duration);
 		}
 
-		macro end(int x, int z, int angle, int zoom_level)
+		macro end(int x, int z, int angle, int zoom_level = 0)
 		{
 			FlybySetEndTarget(x, z, angle, zoom_level);
 		}

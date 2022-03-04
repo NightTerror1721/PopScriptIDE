@@ -6,4 +6,8 @@ main
 {
 	int val = 0;
 	SetUserInputsEnabled(true);
+
+	Flyby.new();
+	Flyby.event.pos(250, 600, 128, 40);
+	Flyby.event.end(100, 64, 1500, 0);
 }

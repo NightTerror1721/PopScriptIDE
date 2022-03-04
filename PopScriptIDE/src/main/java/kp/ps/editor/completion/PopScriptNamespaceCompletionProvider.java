@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.editor;
+package kp.ps.editor.completion;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class PopScriptNamespaceCompletionProvider extends PopScriptBaseCompletio
         setParent(parent);
     }
     
-    final Map<String, PopScriptNamespaceCompletionProvider> getChildren()
+    public final Map<String, PopScriptNamespaceCompletionProvider> getChildren()
     {
         return Collections.unmodifiableMap(children);
     }
@@ -90,7 +90,7 @@ public class PopScriptNamespaceCompletionProvider extends PopScriptBaseCompletio
         return getProviderFor(parts, 0);
     }
     
-    private CompletionProvider getProviderFor(String[] parts, int index)
+    private PopScriptNamespaceCompletionProvider getProviderFor(String[] parts, int index)
     {
         if(index >= parts.length)
             throw new IllegalStateException();

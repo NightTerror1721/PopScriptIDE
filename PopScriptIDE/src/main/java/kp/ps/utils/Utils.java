@@ -140,7 +140,7 @@ public final class Utils
     public static final void initPopScriptLanguage()
     {
         AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
-        atmf.putMapping(POPSCRIPT_TEXT_TYPE, "kp.ps.editor.PopScriptHighlight");
+        atmf.putMapping(POPSCRIPT_TEXT_TYPE, "kp.ps.editor.highlight.PopScriptTokenMaker");
         
         FoldParserManager.get().addFoldParserMapping(POPSCRIPT_TEXT_TYPE, new CurlyFoldParser(true, false));
     }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.editor;
+package kp.ps.editor.completion;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -364,7 +364,7 @@ public class PopScriptCompletionProvider extends CompletionProviderBase implemen
         completions.add(cmp);
     }
     
-    static final PopScriptBaseCompletionProvider getRootCompletionProvider()
+    public static final PopScriptBaseCompletionProvider getRootCompletionProvider()
     {
         initGlobalProvider();
         return globalProvider;

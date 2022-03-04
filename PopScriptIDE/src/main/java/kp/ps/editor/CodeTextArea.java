@@ -17,12 +17,17 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import kp.ps.editor.completion.PopScriptCompletionProvider;
+import kp.ps.editor.highlight.HighlightNamespace;
+import kp.ps.editor.highlight.PopScriptTokenMakerFactory;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.ScriptCompiler;
+import kp.ps.utils.Pointer;
 import kp.ps.utils.Utils;
 import org.fife.rsta.ui.CollapsibleSectionPanel;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.CompletionCellRenderer;
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -40,6 +45,7 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
     private final AutoCompletion autoCompletion;
     private final HelpElementsManager helpElements;
     private final PopScriptParser parser;
+    private final PopScriptTokenMakerFactory tokenMakerFactory;
     private final ErrorList errors;
     private String name;
     private Path file;
@@ -53,6 +59,9 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
             Consumer<ErrorList> actionAfterParse)
     {
         super(20, 60);
+        
+        this.tokenMakerFactory = new PopScriptTokenMakerFactory();
+        ((RSyntaxDocument) super.getDocument()).setTokenMakerFactory(tokenMakerFactory);
         
         this.file = null;
         this.name = Objects.requireNonNull(name);
@@ -120,9 +129,9 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
             autoCompletion.uninstall();
         });
         
-        this.parser = new PopScriptParser(this, errors, actionAfterParse, completionProvider, helpElements);
-        
         setSyntaxEditingStyle(Utils.POPSCRIPT_TEXT_TYPE);
+        this.parser = new PopScriptParser(this, errors, actionAfterParse, completionProvider, helpElements, tokenMakerFactory);
+        
         setCodeFoldingEnabled(true);
         setMarkOccurrences(true);
         setParserDelay(500);
@@ -221,7 +230,9 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
     
     public final void compileAndUpdateHelpers()
     {
-        ScriptCompiler.compile(getText(), errors, file, completionProvider.getBaseProvider());
+        Pointer<HighlightNamespace> hpPointer = new Pointer();
+        ScriptCompiler.compile(getText(), errors, file, completionProvider.getBaseProvider(), hpPointer);
+        tokenMakerFactory.setHighlightManagerRoot(hpPointer.get());
         updateHelpers();
     }
     

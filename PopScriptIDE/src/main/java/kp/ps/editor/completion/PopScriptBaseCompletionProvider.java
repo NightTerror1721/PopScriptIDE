@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package kp.ps.editor;
+package kp.ps.editor.completion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +25,7 @@ public class PopScriptBaseCompletionProvider extends DefaultCompletionProvider
     private boolean computedCache = false;
     protected final List<Completion>[] cache = initCache();
     
-    final List<Completion> getCompletions() { return completions; }
+    public final List<Completion> getCompletions() { return completions; }
     
     private static List<Completion>[] initCache()
     {

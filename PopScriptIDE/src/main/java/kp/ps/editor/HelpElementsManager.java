@@ -5,6 +5,11 @@
  */
 package kp.ps.editor;
 
+import kp.ps.editor.completion.PopScriptNamespaceCompletionProvider;
+import kp.ps.editor.completion.MacroCompletion;
+import kp.ps.editor.completion.PopScriptCompletionProvider;
+import kp.ps.editor.completion.PopScriptBaseCompletionProvider;
+import kp.ps.editor.completion.NamespaceCompletion;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;

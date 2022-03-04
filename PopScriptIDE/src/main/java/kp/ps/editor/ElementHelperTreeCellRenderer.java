@@ -5,6 +5,8 @@
  */
 package kp.ps.editor;
 
+import kp.ps.editor.completion.MacroCompletion;
+import kp.ps.editor.completion.NamespaceCompletion;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.JTree;

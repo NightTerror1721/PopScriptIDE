@@ -10,7 +10,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import kp.ps.editor.PopScriptNamespaceCompletionProvider;
+import kp.ps.editor.completion.PopScriptNamespaceCompletionProvider;
+import kp.ps.editor.highlight.HighlightNamespace;
 import kp.ps.script.Script;
 import kp.ps.script.ScriptInternal;
 import kp.ps.script.ScriptToken;
@@ -19,6 +20,7 @@ import kp.ps.script.instruction.Instruction;
 import kp.ps.script.instruction.InstructionCompiler;
 import kp.ps.script.instruction.InstructionParser;
 import kp.ps.utils.CodeReader;
+import kp.ps.utils.Pointer;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -29,45 +31,64 @@ public class ScriptCompiler
 {
     private ScriptCompiler() {}
     
-    public static final Script compile(Path path, ErrorList errors, PopScriptNamespaceCompletionProvider completionProvider) throws IOException
+    public static final Script compile(
+            Path path,
+            ErrorList errors,
+            PopScriptNamespaceCompletionProvider completionProvider,
+            Pointer<HighlightNamespace> highlights) throws IOException
     {
         try(InputStream input = Files.newInputStream(path))
         {
-            return compile(new CodeReader(input), errors, path, completionProvider);
+            return compile(new CodeReader(input), errors, path, completionProvider, highlights);
         }
     }
     public static final Script compile(Path path, ErrorList errors) throws IOException
     {
-        return compile(path, errors, null);
+        return compile(path, errors, null, null);
     }
     
-    public static final Script compile(String code, ErrorList errors, Path fakeSource, PopScriptNamespaceCompletionProvider completionProvider)
+    public static final Script compile(
+            String code,
+            ErrorList errors,
+            Path fakeSource,
+            PopScriptNamespaceCompletionProvider completionProvider,
+            Pointer<HighlightNamespace> highlights)
     {
-        return compile(new CodeReader(code), errors, fakeSource, completionProvider);
+        return compile(new CodeReader(code), errors, fakeSource, completionProvider, highlights);
     }
     public static final Script compile(String code, ErrorList errors, Path fakeSource)
     {
-        return compile(new CodeReader(code), errors, fakeSource, null);
+        return compile(new CodeReader(code), errors, fakeSource, null, null);
     }
     public static final Script compile(String code, ErrorList errors)
     {
-        return compile(new CodeReader(code), errors, null, null);
+        return compile(new CodeReader(code), errors, null, null, null);
     }
     
-    public static final Script compile(InputStream input, ErrorList errors, Path fakeSource, PopScriptNamespaceCompletionProvider completionProvider)
+    public static final Script compile(
+            InputStream input,
+            ErrorList errors,
+            Path fakeSource,
+            PopScriptNamespaceCompletionProvider completionProvider,
+            Pointer<HighlightNamespace> highlights)
     {
-        return compile(new CodeReader(input), errors, fakeSource, completionProvider);
+        return compile(new CodeReader(input), errors, fakeSource, completionProvider, highlights);
     }
     public static final Script compile(InputStream input, ErrorList errors, Path fakeSource)
     {
-        return compile(new CodeReader(input), errors, fakeSource, null);
+        return compile(new CodeReader(input), errors, fakeSource, null, null);
     }
     public static final Script compile(InputStream input, ErrorList errors)
     {
-        return compile(new CodeReader(input), errors, null, null);
+        return compile(new CodeReader(input), errors, null, null, null);
     }
     
-    private static Script compile(CodeReader source, ErrorList errors, Path mainSource, PopScriptNamespaceCompletionProvider completionProvider)
+    private static Script compile(
+            CodeReader source,
+            ErrorList errors,
+            Path mainSource,
+            PopScriptNamespaceCompletionProvider completionProvider,
+            Pointer<HighlightNamespace> highlights)
     {
         if(errors == null)
             errors = new ErrorList();
@@ -121,6 +142,9 @@ public class ScriptCompiler
         
         if(completionProvider != null)
             completionProvider.fill(state.getNamespace());
+        
+        if(highlights != null)
+            highlights.set(new HighlightNamespace(state.getNamespace()));
         
         state.clear();
         initCode.clear();
