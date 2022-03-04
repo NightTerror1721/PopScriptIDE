@@ -69,7 +69,7 @@ public final class FileChooser
     private static Path insertFormat(Path path, String format)
     {
         path = path.toAbsolutePath();
-        if(!path.getFileName().endsWith(format))
+        if(!path.getFileName().toString().endsWith(format))
             path = new File(path.toFile().getName() + format).getAbsoluteFile().toPath();
         return path;
     }

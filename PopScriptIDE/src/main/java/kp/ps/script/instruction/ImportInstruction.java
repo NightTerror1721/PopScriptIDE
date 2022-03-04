@@ -24,6 +24,7 @@ import kp.ps.script.parser.FragmentList;
 import kp.ps.script.parser.Separator;
 import kp.ps.script.parser.StringLiteral;
 import kp.ps.utils.CodeReader;
+import kp.ps.utils.Utils;
 
 /**
  *
@@ -54,8 +55,43 @@ public class ImportInstruction extends Instruction
     @Override
     void staticCompile(CompilerState state, CodeManager initCode, CodeManager mainCode) throws CompilerException
     {
+        Path root = state.getCurrentSourceFile();
+        if(root != null)
+        {
+            if(!root.isAbsolute())
+                root = root.toAbsolutePath();
+            if(root.getNameCount() < 2)
+                root = null;
+            else
+            {
+                root = root.getParent();
+                if(!Files.exists(root) || !Files.isDirectory(root))
+                    root = null;
+            }
+        }
+        
         for(Path path : paths)
         {
+            if(!path.isAbsolute())
+            {
+                final Path scriptPath = path;
+                
+                if(root != null)
+                    path = root.resolve(path);
+                if(!path.isAbsolute())
+                    path = path.toAbsolutePath();
+                
+                path = concatScriptFormat(path);
+            
+                if(!Files.isRegularFile(path))
+                {
+                    path = concatScriptFormat(Utils.DEFAULT_LIBS_PATH.resolve(scriptPath));
+                    if(!path.isAbsolute())
+                        path = path.toAbsolutePath();
+                }
+            }
+            path = path.normalize();
+            
             state.pushSourceFile(path);
 
             CodeReader source;
@@ -101,4 +137,10 @@ public class ImportInstruction extends Instruction
         return new ImportInstruction(first, last, paths.toArray(new Path[paths.size()]));
     }
     
+    private static Path concatScriptFormat(Path path)
+    {
+        if(!path.getFileName().toString().endsWith(Utils.LANGUAGE_FILE_FORMAT))
+            return path.getParent().resolve(path.getFileName().toString() + Utils.LANGUAGE_FILE_FORMAT);
+        return path;
+    }
 }

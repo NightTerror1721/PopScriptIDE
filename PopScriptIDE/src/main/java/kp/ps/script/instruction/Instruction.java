@@ -40,6 +40,8 @@ public abstract class Instruction
     
     public abstract boolean hasYieldInstruction();
     
+    public boolean isYieldInstruction() { return false; }
+    
     /*abstract String toString(int currentIdent, int deltaIdent);
     
     public final String toString(int identation) { return toString(0, Math.max(0, identation)); }

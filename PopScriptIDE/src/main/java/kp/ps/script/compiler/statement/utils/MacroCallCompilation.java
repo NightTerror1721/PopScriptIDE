@@ -54,8 +54,8 @@ public class MacroCallCompilation implements StatementTask
     }
 
     @Override
-    public StatementTask.ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
+    public ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
     {
-        return temps.normalCompileWithTemp(this).conditionalCompile(state, prev, cond, temps);
+        return macro.conditionalCompile(state, prev, cond, temps, args, this);
     }
 }

@@ -47,6 +47,9 @@ public final class Utils
     public static final String POPSCRIPT_TEXT_TYPE = "text/popscript";
     public static final String LANGUAGE_FILE_FORMAT_NAME = "spopscr";
     public static final String LANGUAGE_FILE_FORMAT = '.' + LANGUAGE_FILE_FORMAT_NAME;
+    
+    public static final Path DEFAULT_LIBS_PATH = Paths.get("libs").toAbsolutePath();
+    
     private static Image LOGO;
     
     private static Icon ICON_NAMESPACE;

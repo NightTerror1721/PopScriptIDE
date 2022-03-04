@@ -13,7 +13,9 @@ import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementTask.ConditionalState;
 import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
+import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.script.parser.CodeParser;
 import kp.ps.script.parser.Statement;
 import kp.ps.utils.CodeReader;
@@ -30,6 +32,15 @@ public class YieldInstruction extends Instruction
     {
         super(firstLine, lastLine);
         this.statement = Objects.requireNonNull(statement);
+    }
+    
+    public final ConditionalState conditionalCompile(CompilerState state, CodeManager prev, CodeManager cond, TemporaryVars temps) throws CompilerException
+    {
+        if(!state.isOnInvocation())
+            throw new CompilerException("Invalid use of 'yield' command. Can only use it into macro's code.");
+        
+        StatementTask task = StatementCompiler.toTask(state, statement);
+        return task.conditionalCompile(state, prev, cond, temps);
     }
     
     @Override
@@ -57,6 +68,9 @@ public class YieldInstruction extends Instruction
 
     @Override
     public boolean hasYieldInstruction() { return true; }
+    
+    @Override
+    public boolean isYieldInstruction() { return true; }
     
     public static final YieldInstruction parse(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
     {

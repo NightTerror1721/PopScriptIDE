@@ -1,0 +1,9 @@
+import "langdefs";
+import "flyby";
+
+
+main
+{
+	int val = 0;
+	SetUserInputsEnabled(true);
+}

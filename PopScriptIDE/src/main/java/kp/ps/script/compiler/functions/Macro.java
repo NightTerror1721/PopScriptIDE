@@ -13,13 +13,16 @@ import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.ErrorList;
 import kp.ps.script.compiler.statement.MemoryAddress;
 import kp.ps.script.compiler.statement.StatementTask;
+import kp.ps.script.compiler.statement.StatementTask.ConditionalState;
 import kp.ps.script.compiler.statement.StatementValue;
+import kp.ps.script.compiler.statement.utils.MacroCallCompilation;
 import kp.ps.script.compiler.statement.utils.StatementTaskUtils;
 import kp.ps.script.compiler.statement.utils.TemporaryVars;
 import kp.ps.script.compiler.types.ParameterType;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.instruction.Instruction;
 import kp.ps.script.instruction.InstructionCompiler;
+import kp.ps.script.instruction.YieldInstruction;
 import kp.ps.script.parser.ArgumentList;
 import kp.ps.script.parser.CodeParser;
 import kp.ps.script.parser.Command;
@@ -44,7 +47,7 @@ public class Macro
     private final int firstLine;
     private final int lastLine;
     private final int numOfMandatoryArgs;
-    private final boolean hasYield;
+    private final int yieldCount;
     
     private Macro(String name, String description, Parameter[] pars, Instruction[] instructions, int firstLine, int lastLine)
     {
@@ -65,11 +68,11 @@ public class Macro
         }
         this.numOfMandatoryArgs = mandatory;
         
-        boolean yield = false;
+        int yield = 0;
         for(Instruction inst : this.instructions)
             if(inst.hasYieldInstruction())
-                yield = true;
-        this.hasYield = yield;
+                yield++;
+        this.yieldCount = yield;
     }
     
     public final String getName() { return name; }
@@ -79,7 +82,7 @@ public class Macro
     
     public final Instruction[] getInstructions() { return Arrays.copyOf(instructions, instructions.length); }
     
-    public final boolean hasYield() { return hasYield; }
+    public final boolean hasYield() { return yieldCount > 0; }
     
     public final int getFirstLine() { return firstLine; }
     public final int getLastLine() { return lastLine; }
@@ -119,10 +122,64 @@ public class Macro
             
             state.popMacroInvocation();
             
-            if(!hasYield && retloc == yieldloc)
+            if(!hasYield() && retloc == yieldloc)
                 StatementTaskUtils.assignation(yieldloc, StatementValue.of(Int32.ZERO)).normalCompile(state, code);
             
             return yieldloc;
+        }
+    }
+    
+    public final ConditionalState conditionalCompile(
+            CompilerState state,
+            CodeManager prev,
+            CodeManager cond,
+            TemporaryVars parentTemps,
+            StatementTask[] argTasks,
+            MacroCallCompilation macroCallTask
+    ) throws CompilerException
+    {
+        if(yieldCount != 1 || instructions.length < 1 || !instructions[instructions.length - 1].isYieldInstruction())
+            return parentTemps.normalCompileWithTemp(macroCallTask).conditionalCompile(state, prev, cond, parentTemps);
+        else
+        {
+            if(argTasks.length > params.length)
+                throw new CompilerException("Expected only %s num of args. But found %s.", params.length, argTasks.length);
+
+            if(argTasks.length < numOfMandatoryArgs)
+                throw new CompilerException("Expected at least %s num of args. But found %s.", numOfMandatoryArgs, argTasks.length);
+
+            CodeManager prevCode = new CodeManager();
+            CodeManager macroCode = new CodeManager();
+            StatementValue[] args = new StatementValue[params.length];
+            try(TemporaryVars temps = TemporaryVars.open(state, prevCode))
+            {
+                state.pushMacroInvocation(this, MemoryAddress.invalid());
+
+                for(int i = 0; i < params.length; ++i)
+                {
+                    StatementValue valueArg = i >= argTasks.length
+                            ? null
+                            : temps.argCompileWithTemp(argTasks[i]);
+                    args[i] = params[i].checkOrGetDefault(valueArg);
+                }
+
+                prev.insertCode(prevCode);
+
+                state.pushLocalElements();
+                for(int i = 0; i < args.length; ++i)
+                    state.getLocalElements().createArgument(params[i].getName(), args[i]);
+                
+                InstructionCompiler.normalCompile(state, macroCode, Arrays.asList(instructions).subList(0, instructions.length - 1));
+                prev.insertCode(macroCode);
+                
+                YieldInstruction lastYield = (YieldInstruction) instructions[instructions.length - 1];
+                ConditionalState condResult = lastYield.conditionalCompile(state, prev, cond, parentTemps);
+                
+                state.popLocalElements();
+                state.popMacroInvocation();
+
+                return condResult;
+            }
         }
     }
     

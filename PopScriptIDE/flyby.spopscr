@@ -1,0 +1,42 @@
+//////////////////////////////////////////////////////////////////////
+// File: flyby
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+namespace Flyby
+{
+	macro new() { FlybyCreateNew(); }
+
+	macro start() { FlybyStart(); }
+
+	macro stop() { FlybyStop(); }
+
+	namespace event
+	{
+		macro pos(int x, int z, int start_at, int duration)
+		{
+			FlybySetEventPos(x, z, start_at, duration);
+		}
+
+		macro angle(int direction, int start_at, int duration)
+		{
+			FlybySetEventAngle(direction, start_at, duration);
+		}
+
+		macro tooltip(int x, int z, int dialog_idx, int start_at, int duration)
+		{
+			FlybySetEventTooltip(x, z, dialog_idx, start_at, duration);
+		}
+
+		macro zoom(int zoom_level, int start_at, int duration)
+		{
+			FlybySetEventZoom(zoom_level, start_at, duration);
+		}
+
+		macro end(int x, int z, int angle, int zoom_level)
+		{
+			FlybySetEndTarget(x, z, angle, zoom_level);
+		}
+	}
+}

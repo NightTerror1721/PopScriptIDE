@@ -45,7 +45,7 @@ public final class StatementCompiler
         return StatementValue.decode(state, (Statement) identifier);
     }
     
-    public static final StatementTask.ConditionalState compileIfCommand(CompilerState state, CodeManager code, StatementTask condition) throws CompilerException
+    public static final ConditionalState compileIfCommand(CompilerState state, CodeManager code, StatementTask condition) throws CompilerException
     {
         CodeManager prev = new CodeManager();
         CodeManager cond = new CodeManager();
@@ -246,7 +246,7 @@ public final class StatementCompiler
         {
             String identifier = ref.toString();
             if(state.getNamespace().existsMacro(identifier))
-                return toTaskCallAction(state, call, state.getNamespace().getMacro(identifier));
+                return toTaskCallMacro(state, call, state.getNamespace().getMacro(identifier));
             
             if(state.getLocalElements().exists(identifier))
             {
@@ -271,7 +271,7 @@ public final class StatementCompiler
             String identifier = resolver.getLastIdentifier().toString();
             
             if(namespace.existsMacro(identifier))
-                return toTaskCallAction(state, call, namespace.getMacro(identifier));
+                return toTaskCallMacro(state, call, namespace.getMacro(identifier));
             
             if(namespace.existsField(identifier))
             {
@@ -299,7 +299,7 @@ public final class StatementCompiler
         return StatementTaskUtils.actionCall(function, args);
     }
     
-    private static StatementTask toTaskCallAction(CompilerState state, FunctionCall call, Macro macro) throws CompilerException
+    private static StatementTask toTaskCallMacro(CompilerState state, FunctionCall call, Macro macro) throws CompilerException
     {
         Statement[] sargs = call.getAllArguments();
         StatementTask[] args = new StatementTask[sargs.length];

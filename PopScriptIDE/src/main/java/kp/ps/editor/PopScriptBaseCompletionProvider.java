@@ -51,6 +51,8 @@ public class PopScriptBaseCompletionProvider extends DefaultCompletionProvider
         {
             computedCache = true;
             completions.forEach(completion -> cache[completion.getRelevance()].add(completion));
+            for(List<Completion> list : cache)
+                list.sort(comparator);
         }
         return cache;
     }
@@ -223,6 +225,7 @@ public class PopScriptBaseCompletionProvider extends DefaultCompletionProvider
         return retVal;
     }
     
+    @SuppressWarnings("empty-statement")
     private void fillCompletionByInputText(List<Completion> retVal, String inputText, List<Completion> completions)
     {
         // Find any entry that matches this input text (there may be > 1).

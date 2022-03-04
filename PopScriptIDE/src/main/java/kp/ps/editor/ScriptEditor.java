@@ -326,7 +326,10 @@ public class ScriptEditor extends JFrame
                         Completion comp = (Completion) node.getUserObject();
                         String desc = comp.getSummary();
                         if(desc != null && !desc.isEmpty())
+                        {
                             terminalHelp.setText(desc);
+                            terminalHelp.setCaretPosition(0);
+                        }
                         else terminalHelp.setText("");
                     }
                 }

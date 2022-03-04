@@ -362,6 +362,9 @@ macro sub(int a, int b) { yield a - b; }
 macro mul(int a, int b) { yield a * b; }
 macro div(int a, int b) { yield a / b; }
 
+macro increment(int reference) { yield ++reference; }
+macro decrement(int reference) { yield --reference; }
+
 macro max(int a, int b)
 {
 	if(a > b)

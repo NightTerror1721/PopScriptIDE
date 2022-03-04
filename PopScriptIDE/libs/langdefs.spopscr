@@ -1,0 +1,68 @@
+//////////////////////////////////////////////////////////////////////
+// File: langdefs
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+
+const true  = 1;
+const false = 0;
+
+const invalid_id = -1;
+
+macro set(int reference, int value) { reference = value; }
+
+macro add(int a, int b) { yield a + b; }
+macro sub(int a, int b) { yield a - b; }
+macro mul(int a, int b) { yield a * b; }
+macro div(int a, int b) { yield a / b; }
+
+macro increment(int reference) { yield ++reference; }
+macro decrement(int reference) { yield --reference; }
+
+macro equals(int left, int right) { yield left == right; }
+macro not_equals(int left, int right) { yield left != right; }
+macro greater_than(int left, int right) { yield left > right; }
+macro less_than(int left, int right) { yield left < right; }
+macro greater_or_equal_than(int left, int right) { yield left >= right; }
+macro less_or_equal_than(int left, int right) { yield left <= right; }
+
+macro and(int left, int right) { yield left && right; }
+macro or(int left, int right) { yield left || right; }
+macro not(int value) { yield !value; }
+
+macro max(int a, int b)
+{
+	if(a > b)
+		yield a;
+	else yield b;
+}
+
+macro min(int a, int b)
+{
+	if(a < b)
+		yield a;
+	else yield b;
+}
+
+macro clamp(int value, int minValue, int maxValue)
+{
+	yield min(maxValue, max(minValue, value));
+}
+
+
+/* Function utils */
+
+macro d100() { yield RANDOM_100; }
+macro Random100() { yield RANDOM_100; }
+
+macro IsInitialTurn() { yield GAME_TURN == 0; }
+macro IsTurn(int turn) { yield GAME_TURN == turn; }
+
+macro SetUserInputsEnabled(int enabled)
+{
+	if(enabled)
+		EnableUserInputs();
+	else
+		DisableUserInputs();
+}

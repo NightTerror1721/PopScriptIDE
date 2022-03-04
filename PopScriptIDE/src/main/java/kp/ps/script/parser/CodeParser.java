@@ -452,6 +452,9 @@ public final class CodeParser
     
     public final boolean checkNextOrBacktrack(CodeReader source, CommandId command, ErrorList errors) throws CompilerException
     {
+        if(!source.hasNext())
+            return false;
+        
         int lastIndex = source.getCurrentIndex();
         LinkedList<Fragment> old = new LinkedList<>(accumulated.list);
         Fragment frag = parseFragment0(source, true, errors);

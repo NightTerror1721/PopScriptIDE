@@ -23,6 +23,26 @@ macro default_zoom(int angle) {
 const int INITIAL_TURN = 0;
 macro IsInitialTurn() { yield GAME_TURN == INITIAL_TURN; }
 
+macro max(int a, int b)
+{
+	yield a > b ? a : b;
+}
+
+macro min(int a, int b)
+{
+	yield a < b ? a : b;
+}
+
+macro clamp(int value, int minValue, int maxValue)
+{
+	yield max(minValue, min(maxValue, value));
+}
+
+macro IsTurn(int turn)
+{
+	yield GAME_TURN == turn;
+}
+
 main
 {
 	self.zoom(10, 18, 1250);
@@ -38,6 +58,11 @@ main
 			if(IsInitialTurn())
 			{
 				var x = 10;
+				var y = 50;
+				if(IsTurn(clamp(x, 5, y)))
+				{
+					x = 65;
+				}
 			}
 		}
 	}
