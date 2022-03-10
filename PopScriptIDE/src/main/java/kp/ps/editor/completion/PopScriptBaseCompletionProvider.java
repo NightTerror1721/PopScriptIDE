@@ -91,7 +91,27 @@ public class PopScriptBaseCompletionProvider extends DefaultCompletionProvider
     @Override
     public void addCompletions(List<Completion> completions)
     {
-        super.addCompletions(completions);
+        try
+        {
+            for (Completion c : completions)
+            {
+                checkProviderAndAdd(c);
+            }
+            Collections.sort(this.completions, (o1, o2) -> {
+                if(o1 == o2)
+                    return 0;
+                else if(o1 == null)
+                    return o2 == null ? 0 : 1;
+                else if(o2 == null)
+                    return -1;
+                else
+                    return o1.toString().compareTo(o2.toString());
+            });
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
         clearCache();
     }
 

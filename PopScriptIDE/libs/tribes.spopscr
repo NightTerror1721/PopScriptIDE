@@ -1,3 +1,8 @@
+//////////////////////////////////////////////////////////////////////
+// File: tribes
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
 
 namespace Blue
 {
@@ -235,6 +240,7 @@ namespace Self
 	// Attributes //
 	namespace attr
 	{
+		internal attack_percentage				= ATTR_ATTACK_PERCENTAGE;
 		internal away_brave 					= ATTR_AWAY_BRAVE;
 		internal away_firewarrior 				= ATTR_AWAY_FIREWARRIOR;
 		internal away_religious 					= ATTR_AWAY_RELIGIOUS;
@@ -284,118 +290,3 @@ namespace Self
 		internal use_preacher_for_defence 			= ATTR_USE_PREACHER_FOR_DEFENSE;
 	}
 }
-
-namespace Spell
-{
-	internal lightning 		= LIGHTNING_BOLT;
-	internal tornado 		= WHIRLWIND;
-	internal swarm 		= INSECT_PLAGUE;
-	internal invisibility 	= INVISIBILITY;
-	internal hypnotism 		= HYPNOTISM;
-	internal ghost_army 	= GHOST_ARMY;
-	internal erosion 		= EROSION;
-	internal swamp 		= SWAMP;
-	internal land_bridge 	= LAND_BRIDGE;
-	internal angel_of_dead 	= ANGEL_OF_DEAD;
-	internal earthquake 	= EARTHQUAKE;
-	internal flatten 		= FLATTEN;
-	internal volcano 		= VOLCANO;
-	internal armageddon 	= WRATH_OF_GOD;
-	internal shield 		= SHIELD;
-	internal convert 		= CONVERT;
-	internal teleport 		= TELEPORT;
-	internal bloodlust 		= BLOODLUST;
-
-	internal no_specific	= NO_SPECIFIC_SPELL;
-}
-
-namespace Follower
-{
-	internal brave 		= BRAVE;
-	internal religious 		= RELIGIOUS;
-	internal spy 			= SPY;
-	internal firewarrior 	= FIREWARRIOR;
-	internal shaman 		= SHAMAN;
-
-	internal no_specific 	= NO_SPECIFIC_PERSON;
-}
-
-namespace Building
-{
-	internal small_hut 			= SMALL_HUT;
-	internal medium_hut 		= MEDIUM_HUT;
-	internal large_hut 			= LARGE_HUT;
-	internal drum_tower 		= DRUM_TOWER;
-	internal temple 			= TEMPLE;
-	internal spy_train 			= SPY_TRAIN;
-	internal warrior_train 		= WARRIOR_TRAIN;
-	internal firewarrior_train 	= FIREWARRIOR_TRAIN;
-	internal boat_hut 			= BOAT_HUT;
-	internal airship_hut 		= AIRSHIP_HUT;
-
-	internal no_specific		= NO_SPECIFIC_BUILDING;
-}
-
-namespace Camera
-{
-	internal angle = CAMERA_ANGLE;
-	internal x = CAMERA_X;
-	internal z = CAMERA_Z;
-}
-
-
-
-
-const TRUE = 1;
-const FALSE = 0;
-
-internal GameTurn = GAME_TURN;
-
-macro GetFreeEntries() { yield CP_FREE_ENTRIES; }
-
-macro Random100() { yield RANDOM_100; }
-
-macro set(int reference, int value) { reference = value; }
-
-macro add(int a, int b) { yield a + b; }
-macro sub(int a, int b) { yield a - b; }
-macro mul(int a, int b) { yield a * b; }
-macro div(int a, int b) { yield a / b; }
-
-macro increment(int reference) { yield ++reference; }
-macro decrement(int reference) { yield --reference; }
-
-macro max(int a, int b)
-{
-	if(a > b)
-		yield a;
-	else yield b;
-}
-
-macro min(int a, int b)
-{
-	if(a < b)
-		yield a;
-	else yield b;
-}
-
-macro clamp(int value, int minValue, int maxValue)
-{
-	yield min(maxValue, max(minValue, value));
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

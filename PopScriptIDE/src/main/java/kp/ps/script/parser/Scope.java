@@ -18,22 +18,28 @@ import kp.ps.script.instruction.Instruction;
  */
 public final class Scope extends Fragment implements Iterable<Instruction>
 {
-    public static final Scope EMPTY_SCOPE = new Scope();
+    public static final Scope EMPTY_SCOPE = new Scope(false);
     
     private final Instruction[] instructions;
+    private final boolean inline;
     
-    public Scope()
+    public Scope(boolean isInline)
     {
         this.instructions = new Instruction[0];
+        this.inline = isInline;
     }
-    public Scope(Instruction... insts)
+    public Scope(boolean isInline, Instruction... insts)
     {
         this.instructions = Arrays.copyOf(insts, insts.length);
+        this.inline = isInline;
     }
-    public Scope(Collection<Instruction> insts)
+    public Scope(boolean isInline, Collection<Instruction> insts)
     {
         this.instructions = insts.toArray(Instruction[]::new);
+        this.inline = isInline;
     }
+    
+    public final boolean isInline() { return inline; }
     
     public final Instruction[] getInstructions()
     {

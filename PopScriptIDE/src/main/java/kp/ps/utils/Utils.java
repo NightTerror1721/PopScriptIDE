@@ -295,4 +295,11 @@ public final class Utils
             ICON_FOLDER = loadIcon("folder.png");
         return ICON_FOLDER;
     }
+    
+    public static final Path concatElementAtPathEnd(Path path, String element)
+    {
+        if(path.getParent() == null)
+            return Paths.get(path.getFileName().toString() + element);
+        return path.getParent().resolve(path.getFileName().toString() + element);
+    }
 }

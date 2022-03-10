@@ -253,6 +253,8 @@ URL						= (((https?|f(tp|ile))"://"|"www.")({URLCharacters}{URLEndCharacter})?)
 "off" |
 "on" |
 "var" |
+"strict" |
+"global" |
 "yield"		{ addToken(Token.RESERVED_WORD); }
 
 	/* Keywords 2 (just an optional set of keywords colored differently) */

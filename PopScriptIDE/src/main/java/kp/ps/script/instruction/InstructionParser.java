@@ -122,6 +122,12 @@ public final class InstructionParser
                 
             case IMPORT:
                 return ImportInstruction.parse(source, parser, errors);
+                
+            case STRICT:
+                return StrictInstruction.parse(state, source, parser, errors);
+                
+            case GLOBAL:
+                return DeclarationInstruction.parseGlobal(source, parser, errors);
         }
         
         throw new CompilerException("Unimpletented command '%s'.", command);

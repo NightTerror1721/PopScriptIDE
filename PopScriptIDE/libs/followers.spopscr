@@ -1,0 +1,16 @@
+//////////////////////////////////////////////////////////////////////
+// File: followers
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+namespace Follower
+{
+	internal brave 		= BRAVE;
+	internal religious 		= RELIGIOUS;
+	internal spy 			= SPY;
+	internal firewarrior 	= FIREWARRIOR;
+	internal shaman 		= SHAMAN;
+
+	internal no_specific 	= NO_SPECIFIC_PERSON;
+}

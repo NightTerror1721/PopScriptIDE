@@ -468,7 +468,7 @@ public final class CodeParser
         return true;
     }
     
-    public final Statement parseInlineInstruction(CodeReader source, ErrorList errors, Fragment... preFragments) throws CompilerException
+    private FragmentList parseInlineFragmentList(CodeReader source, ErrorList errors, Fragment... preFragments) throws CompilerException
     {
         LinkedList<Fragment> frags = new LinkedList<>();
         if(preFragments != null && preFragments.length > 0)
@@ -484,10 +484,21 @@ public final class CodeParser
                 break;
             frags.add(frag);
         }
-        FragmentList list = frags.isEmpty()
+        return frags.isEmpty()
                 ? new FragmentList()
                 : new FragmentList(frags);
-        return StatementParser.parse(list);
+    }
+    
+    public final Statement parseInlineInstruction(CodeReader source, ErrorList errors, Fragment... preFragments) throws CompilerException
+    {
+        return StatementParser.parse(parseInlineFragmentList(source, errors, preFragments));
+    }
+    
+    public final void checkEmptyStatement(CodeReader source, ErrorList errors, Fragment... preFragments) throws CompilerException
+    {
+        FragmentList list = parseInlineFragmentList(source, errors, preFragments);
+        if(list != null && !list.isEmpty())
+            throw new CompilerException("Unexpected statement. Required only '" + Separator.SEMI_COLON + "'.");
     }
     
     public final FragmentList parseInlineInstructionAsList(CodeReader source, Fragment last, ErrorList errors) throws CompilerException
@@ -577,7 +588,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(state, source, true, errors));
+        scope = new Scope(true, InstructionParser.parse(state, source, true, errors));
         return new FragmentList(args, scope);
     }
     
@@ -596,7 +607,7 @@ public final class CodeParser
         source.setIndex(lastIndex);
         accumulated.list.clear();
         accumulated.list = old;
-        scope = new Scope(InstructionParser.parse(state, source, true, errors));
+        scope = new Scope(true, InstructionParser.parse(state, source, true, errors));
         return new FragmentList(scope);
     }
     
@@ -620,7 +631,7 @@ public final class CodeParser
     private Scope parseScope(CodeReader source, ErrorList errors) throws CompilerException
     {
         List<Instruction> instrs = InstructionParser.parse(state, source, false, errors);
-        return new Scope(instrs);
+        return new Scope(false, instrs);
     }
     
     private static CodeReader extractScope(CodeReader source, char cstart, char cend) throws CompilerException

@@ -48,7 +48,7 @@ public final class FileChooser
     {
         path = path.toAbsolutePath();
         if(!path.getFileName().toString().endsWith(format))
-            path = new File(path.toFile().getName() + format).getAbsoluteFile().toPath();
+            path = Utils.concatElementAtPathEnd(path, format);
         return path;
     }
     

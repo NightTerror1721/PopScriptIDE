@@ -1,0 +1,29 @@
+//////////////////////////////////////////////////////////////////////
+// File: spells
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+namespace Spell
+{
+	internal lightning 		= LIGHTNING_BOLT;
+	internal tornado 		= WHIRLWIND;
+	internal swarm 		= INSECT_PLAGUE;
+	internal invisibility 	= INVISIBILITY;
+	internal hypnotism 		= HYPNOTISM;
+	internal ghost_army 	= GHOST_ARMY;
+	internal erosion 		= EROSION;
+	internal swamp 		= SWAMP;
+	internal land_bridge 	= LAND_BRIDGE;
+	internal angel_of_dead 	= ANGEL_OF_DEAD;
+	internal earthquake 	= EARTHQUAKE;
+	internal flatten 		= FLATTEN;
+	internal volcano 		= VOLCANO;
+	internal armageddon 	= WRATH_OF_GOD;
+	internal shield 		= SHIELD;
+	internal convert 		= CONVERT;
+	internal teleport 		= TELEPORT;
+	internal bloodlust 		= BLOODLUST;
+
+	internal no_specific	= NO_SPECIFIC_SPELL;
+}

@@ -29,6 +29,7 @@ public final class CompilerState
     private final HashSet<Path> importedSources = new HashSet<>();
     private final LinkedList<Path> importedSourcesStack = new LinkedList<>();
     private final ErrorList errors;
+    private boolean strictMode = false;
     
     
     public CompilerState(ErrorList errors) { this.errors = Objects.requireNonNull(errors); }
@@ -137,6 +138,11 @@ public final class CompilerState
         return importedSourcesStack.peek();
     }
     
+    public final void compileGlobalInitVariables(CodeManager initCode) throws CompilerException
+    {
+        fieldsManager.compileGlobalInitVariables(this, initCode, errors);
+    }
+    
     
     public final Script compileScript(CodeManager code)
     {
@@ -155,4 +161,7 @@ public final class CompilerState
         fieldsManager.clear();
         invokedMacros.clear();
     }
+    
+    public final void enableStrictMode() { strictMode = true; }
+    public final boolean isStrictModeEnabled() { return strictMode; }
 }

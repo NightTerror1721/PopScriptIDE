@@ -1,0 +1,15 @@
+//////////////////////////////////////////////////////////////////////
+// File: Standard Library
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+import "langdefs";
+import "tribes";
+import "buildings";
+import "followers";
+import "spells";
+import "camera";
+import "flyby";
+
+

@@ -108,7 +108,16 @@ public class LocalElementsScope
             throw new CompilerException("Duplicated identifier '%s'.", identifier);
         
         VariableElement elem = new VariableElement(identifier);
-        //elem.getVariableIndex(true);
+        elements.put(identifier, elem);
+        return elem;
+    }
+    
+    public final Element createGlobalVariable(String identifier) throws CompilerException
+    {
+        if(elements.containsKey(identifier))
+            throw new CompilerException("Duplicated identifier '%s'.", identifier);
+        
+        VariableElement elem = new VariableElement(identifier, true);
         elements.put(identifier, elem);
         return elem;
     }
@@ -190,6 +199,8 @@ public class LocalElementsScope
         public void initiateConstInternalValue(ScriptInternal value) throws CompilerException { throw new IllegalStateException(); }
         public void initiateConstTypedValueValue(TypedValue value) throws CompilerException { throw new IllegalStateException(); }
         
+        public void initGlobalVariable(Int32 initValue) throws CompilerException { throw new IllegalStateException(); }
+        
         boolean isArgument() { return false; }
         
         public final MemoryAddress toMemoryAddress() throws CompilerException { return MemoryAddress.of(this); }
@@ -251,12 +262,18 @@ public class LocalElementsScope
     private final class VariableElement extends Element
     {
         private final String name;
+        private final boolean global;
         private VariableIndex variableIndex;
         
-        private VariableElement(String name) throws CompilerException
+        private VariableElement(String name, boolean isGlobal) throws CompilerException
         {
             this.name = Objects.requireNonNull(name);
+            this.global = isGlobal;
             this.variableIndex = null;
+        }
+        private VariableElement(String name) throws CompilerException
+        {
+            this(name, false);
         }
         
         @Override
@@ -265,8 +282,8 @@ public class LocalElementsScope
         @Override
         public final VariableIndex getVariableIndex(boolean createTemporalIfItIsNeeded) throws CompilerException
         {
-            if(variableIndex == null && createTemporalIfItIsNeeded)
-                variableIndex = fieldsManager.newVariable();
+            if(createTemporalIfItIsNeeded)
+                initiate(null);
             return variableIndex;
         }
         
@@ -279,7 +296,28 @@ public class LocalElementsScope
         @Override
         public final String toString()
         {
+            if(global)
+                return "global int " + name;
             return "int " + name;
+        }
+        
+        @Override
+        public void initGlobalVariable(Int32 initValue) throws CompilerException
+        {
+            if(!global)
+                throw new IllegalStateException();
+            if(initValue != null)
+                initiate(initValue);
+        }
+        
+        private void initiate(Int32 initValue) throws CompilerException
+        {
+            if(variableIndex == null)
+            {
+                variableIndex = global
+                        ? fieldsManager.newGlobalVariable(name, initValue)
+                        : fieldsManager.newVariable();
+            }
         }
     }
     

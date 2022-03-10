@@ -8,9 +8,12 @@ package kp.ps.script.compiler;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import kp.ps.script.Script;
 import kp.ps.script.ScriptField;
 import kp.ps.script.ScriptInternal;
+import kp.ps.script.ScriptToken;
 import kp.ps.utils.ints.Int32;
 
 /**
@@ -29,6 +32,7 @@ public class FieldsManager
     private final HashMap<Int32, FieldLocation> constants = new HashMap<>();
     
     private final UnusedVariables unusedVars = new UnusedVariables();
+    private final GlobalVariables globalVars = new GlobalVariables();
     
     final void clear()
     {
@@ -88,10 +92,13 @@ public class FieldsManager
         return location;
     }
     
-    public final VariableIndex newVariable() throws CompilerException
+    private VariableIndex newVariable(boolean isGlobal) throws CompilerException
     {
-        if(!unusedVars.isEmpty())
-            return unusedVars.pop();
+        if(!isGlobal)
+        {
+            if(!unusedVars.isEmpty())
+                return unusedVars.pop();
+        }
         
         checkVarsMoreSpace();
         FieldLocation location = allocate();
@@ -100,6 +107,20 @@ public class FieldsManager
         fields[location.location] = field;
         vars[index.index] = location;
         return index;
+    }
+    
+    public final VariableIndex newVariable() throws CompilerException
+    {
+        return newVariable(false);
+    }
+    
+    public final VariableIndex newGlobalVariable(String name, Int32 initialValue) throws CompilerException
+    {
+        return globalVars.register(name, initialValue);
+    }
+    public final VariableIndex newGlobalVariable(String name) throws CompilerException
+    {
+        return newGlobalVariable(name, null);
     }
     
     public final FieldLocation getVariableFieldLocation(VariableIndex index)
@@ -119,13 +140,19 @@ public class FieldsManager
     public final void popVariables(VariableIndex... indices)
     {
         if(indices != null && indices.length > 0)
-            for(VariableIndex index : indices)
-                unusedVars.push(index);
+            Stream.of(indices)
+                    .filter(Predicate.not(globalVars::isGlobal))
+                    .forEach(unusedVars::push);
     }
     
     public final void insertToScript(Script script)
     {
         script.insertFields(0, fields, 0, fieldCount);
+    }
+    
+    public final void compileGlobalInitVariables(CompilerState state, CodeManager initCode, ErrorList errors) throws CompilerException
+    {
+        globalVars.compile(state, initCode, errors);
     }
     
     
@@ -234,6 +261,70 @@ public class FieldsManager
         {
             list.clear();
             set.clear();
+        }
+        
+        public final boolean isUnused(VariableIndex index)
+        {
+            return set.contains(index.index);
+        }
+    }
+    
+    private final class GlobalVariables
+    {
+        private final HashMap<String, GlobalVariableData> vars = new HashMap<>();
+        private final HashSet<Integer> indicesSet = new HashSet<>();
+        
+        public final VariableIndex register(String name, Int32 initValue) throws CompilerException
+        {
+            GlobalVariableData var = vars.getOrDefault(name, null);
+            if(var == null)
+            {
+                var = new GlobalVariableData(newVariable(true).index);
+                vars.put(name, var);
+                indicesSet.add(var.variableIndex);
+            }
+            
+            if(initValue != null)
+            {
+                if(var.initValue != null)
+                    throw new CompilerException("Global variable '%s' has already init value.", name);
+                var.initValue = initValue;
+            }
+            
+            return new VariableIndex(var.variableIndex);
+        }
+        
+        public final void compile(CompilerState state, CodeManager initCode, ErrorList errors) throws CompilerException
+        {
+            for(GlobalVariableData var : vars.values())
+            {
+                if(var.initValue != null)
+                {
+                    if(state.isStrictModeEnabled())
+                        throw new CompilerException("Cannot use 'global init' command in 'strict' mode.");
+                    
+                    initCode.insertTokenCode(ScriptToken.SET);
+                    initCode.insertFieldCode(getVariableFieldLocation(new VariableIndex(var.variableIndex)));
+                    initCode.insertFieldCode(registerConstant(var.initValue));
+                }
+            }
+        }
+        
+        public final boolean isGlobal(VariableIndex index)
+        {
+            return indicesSet.contains(index.index);
+        }
+        
+        private final class GlobalVariableData
+        {
+            private final int variableIndex;
+            private Int32 initValue;
+            
+            private GlobalVariableData(int variableIndex)
+            {
+                this.variableIndex = variableIndex;
+                this.initValue = null;
+            }
         }
     }
 }

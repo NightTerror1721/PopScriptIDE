@@ -111,12 +111,12 @@ public class InnerFunction
             {
                 if(retloc.isInvalid())
                 {
-                    temps.push().compileWrite(state, prevCode);
+                    temps.push().compileWrite(state, argsCode);
                     temps.pop();
                 }
                 else
                 {
-                    retloc.compileWrite(state, code);
+                    retloc.compileWrite(state, argsCode);
                 }
             }
             else if(!retloc.isInvalid())

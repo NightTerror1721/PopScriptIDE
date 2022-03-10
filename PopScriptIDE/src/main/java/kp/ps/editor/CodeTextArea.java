@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
@@ -138,6 +139,7 @@ public class CodeTextArea extends RSyntaxTextArea implements FileDocumentReferen
         addParser(parser);
         
         RTextScrollPane scroll = new RTextScrollPane(this);
+        scroll.setBorder(BorderFactory.createEtchedBorder());
         undoLastAction();
         basePanel.add(scroll);
         

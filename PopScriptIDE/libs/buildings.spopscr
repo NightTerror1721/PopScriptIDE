@@ -1,0 +1,21 @@
+//////////////////////////////////////////////////////////////////////
+// File: buildings
+// Author: Krampus1721
+// Type: Include file
+//////////////////////////////////////////////////////////////////////
+
+namespace Building
+{
+	internal small_hut 			= SMALL_HUT;
+	internal medium_hut 		= MEDIUM_HUT;
+	internal large_hut 			= LARGE_HUT;
+	internal drum_tower 		= DRUM_TOWER;
+	internal temple 			= TEMPLE;
+	internal spy_train 			= SPY_TRAIN;
+	internal warrior_train 		= WARRIOR_TRAIN;
+	internal firewarrior_train 	= FIREWARRIOR_TRAIN;
+	internal boat_hut 			= BOAT_HUT;
+	internal airship_hut 		= AIRSHIP_HUT;
+
+	internal no_specific		= NO_SPECIFIC_BUILDING;
+}

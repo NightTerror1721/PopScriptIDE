@@ -110,14 +110,26 @@ public class ScriptCompiler
         List<Instruction> insts = InstructionParser.parse(state, source, false, errors);
         InstructionCompiler.staticCompile(state, initCode, mainCode, insts);
         
+        try
+        {
+            state.compileGlobalInitVariables(initCode);
+        }
+        catch(CompilerException ex)
+        {
+            errors.addError(mainSource, 0, source.getCurrentLine(), ex);
+        }
+        
         if(mainSource != null)
             state.popSourceFile();
         
         CodeManager code = new CodeManager();
         try
         {
-            if(initCode.isEmpty())
+            if(state.isStrictModeEnabled())
             {
+                if(!initCode.isEmpty())
+                    throw new IllegalStateException();
+                
                 code.insertTokenCode(ScriptToken.BEGIN);
                 code.insertCode(mainCode);
                 code.insertTokenCode(ScriptToken.END);

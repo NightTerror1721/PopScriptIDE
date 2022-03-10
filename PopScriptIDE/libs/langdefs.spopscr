@@ -58,6 +58,7 @@ macro Random100() { yield RANDOM_100; }
 
 macro IsInitialTurn() { yield GAME_TURN == 0; }
 macro IsTurn(int turn) { yield GAME_TURN == turn; }
+macro IsAtLeastTurn(int turn) { yield GAME_TURN >= turn; }
 
 macro SetUserInputsEnabled(int enabled)
 {
@@ -66,3 +67,60 @@ macro SetUserInputsEnabled(int enabled)
 	else
 		DisableUserInputs();
 }
+
+macro SetSingleMarkerEntry(
+	int entry_id,
+	int marker,
+	int num_braves,
+	int num_warriors,
+	int num_firewarriors,
+	int num_preachers)
+{
+	SetMarkerEntry(entry_id, marker, -1, num_braves, num_warriors, num_firewarriors, num_preachers);
+}
+
+macro DefaultManaCounts()
+{
+	every(256, 133)
+	{
+		if(MY_NUM_PEOPLE < 80)
+		{
+			SetBucketUsage(on);
+			SetBucketCountForSpell(BLAST, 		8);
+			SetBucketCountForSpell(CONVERT, 		8);
+			SetBucketCountForSpell(INSECT_PLAGUE, 	32);
+			SetBucketCountForSpell(INVISIBILITY, 	40);
+			SetBucketCountForSpell(SHIELD, 		48);
+			SetBucketCountForSpell(LAND_BRIDGE, 	66);
+			SetBucketCountForSpell(LIGHTNING_BOLT, 	64);
+			SetBucketCountForSpell(HYPNOTISM, 		70);
+			SetBucketCountForSpell(WHIRLWIND, 		72);
+			SetBucketCountForSpell(FLATTEN, 		80);
+			SetBucketCountForSpell(EARTHQUAKE, 	100);
+			SetBucketCountForSpell(EROSION, 		140);
+			SetBucketCountForSpell(FIRESTORM, 		168);
+			SetBucketCountForSpell(ANGEL_OF_DEAD, 	320);
+			SetBucketCountForSpell(VOLCANO, 		640);
+		}
+		else
+		{
+			SetBucketUsage(on);
+			SetBucketCountForSpell(BLAST, 		4);
+			SetBucketCountForSpell(CONVERT, 		4);
+			SetBucketCountForSpell(INSECT_PLAGUE, 	16);
+			SetBucketCountForSpell(INVISIBILITY, 	20);
+			SetBucketCountForSpell(SHIELD, 		24);
+			SetBucketCountForSpell(LAND_BRIDGE, 	33);
+			SetBucketCountForSpell(LIGHTNING_BOLT, 	32);
+			SetBucketCountForSpell(HYPNOTISM, 		35);
+			SetBucketCountForSpell(WHIRLWIND, 		36);
+			SetBucketCountForSpell(FLATTEN, 		40);
+			SetBucketCountForSpell(EARTHQUAKE, 	50);
+			SetBucketCountForSpell(EROSION, 		70);
+			SetBucketCountForSpell(FIRESTORM, 		84);
+			SetBucketCountForSpell(ANGEL_OF_DEAD, 	180);
+			SetBucketCountForSpell(VOLCANO, 		320);
+		}
+	}
+}
+

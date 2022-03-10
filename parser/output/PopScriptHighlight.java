@@ -3,10 +3,11 @@
 /*
  * Generated on 9/28/21, 12:19 PM
  */
-package kp.ps.editor.highlight;
+package kp.ps.editor;
 
 import java.io.*;
 import javax.swing.text.Segment;
+
 import org.fife.ui.rsyntaxtextarea.*;
 
 

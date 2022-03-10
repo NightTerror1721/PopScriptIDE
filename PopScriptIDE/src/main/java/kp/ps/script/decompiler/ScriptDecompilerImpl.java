@@ -31,6 +31,9 @@ final class ScriptDecompilerImpl
         {
             try
             {
+                state.append("strict;").println();
+                state.println();
+                
                 state.checkNextCommand(ScriptToken.BEGIN);
                 state.append(CommandId.MAIN.getCommandName())
                         .append(' ')

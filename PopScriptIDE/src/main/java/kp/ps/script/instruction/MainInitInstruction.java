@@ -52,6 +52,9 @@ public class MainInitInstruction extends Instruction
         if(state.hasLocalElements())
             throw new IllegalStateException();
         
+        if(!isMain && state.isStrictModeEnabled())
+            throw new CompilerException("Cannot use 'init' command in 'strict' mode.");
+        
         CodeManager code = new CodeManager();
         state.pushLocalElements();
         for(Instruction inst : instructions)

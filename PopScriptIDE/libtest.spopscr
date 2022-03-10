@@ -1,9 +1,9 @@
-import "langdefs";
-import "flyby";
-
+import "stdlib";
 
 main
 {
+	int x = Random100();
+	
 	int val = 0;
 	SetUserInputsEnabled(true);
 

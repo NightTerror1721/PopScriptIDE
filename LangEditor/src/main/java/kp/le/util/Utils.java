@@ -129,4 +129,11 @@ public final class Utils
         int index = name.lastIndexOf('.');
         return index < 0 ? "" : name.substring(index + 1);
     }
+    
+    public static final Path concatElementAtPathEnd(Path path, String element)
+    {
+        if(path.getParent() == null)
+            return Paths.get(path.getFileName().toString() + element);
+        return path.getParent().resolve(path.getFileName().toString() + element);
+    }
 }

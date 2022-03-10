@@ -10,19 +10,25 @@ import kp.ps.script.compiler.CodeManager;
 import kp.ps.script.compiler.CompilerException;
 import kp.ps.script.compiler.CompilerState;
 import kp.ps.script.compiler.ErrorList;
+import kp.ps.script.compiler.LocalElementsScope.Element;
 import kp.ps.script.compiler.statement.StatementCompiler;
 import kp.ps.script.compiler.statement.StatementTask;
 import kp.ps.script.compiler.types.TypeId;
 import kp.ps.script.compiler.types.TypeModifier;
 import kp.ps.script.namespace.NamespaceField;
 import kp.ps.script.parser.CodeParser;
+import kp.ps.script.parser.Command;
+import kp.ps.script.parser.CommandId;
 import kp.ps.script.parser.FragmentList;
 import kp.ps.script.parser.Operation;
+import kp.ps.script.parser.Operator;
+import kp.ps.script.parser.OperatorId;
 import kp.ps.script.parser.Separator;
 import kp.ps.script.parser.Statement;
 import kp.ps.script.parser.StatementParser;
 import kp.ps.script.parser.Type;
 import kp.ps.utils.CodeReader;
+import kp.ps.utils.ints.Int32;
 
 /**
  *
@@ -33,14 +39,25 @@ public class DeclarationInstruction extends Instruction
     private final TypeModifier modifier;
     private final TypeId type;
     private final Statement[] statements;
+    private final boolean global;
+    private final boolean init;
     
-    private DeclarationInstruction(int firstLine, int lastLine, TypeModifier modifier, TypeId type, Statement[] statements) throws CompilerException
+    private DeclarationInstruction(
+            int firstLine,
+            int lastLine,
+            TypeModifier modifier,
+            TypeId type,
+            Statement[] statements,
+            boolean isGlobal,
+            boolean initMode) throws CompilerException
     {
         super(firstLine, lastLine);
         
         this.modifier = Objects.requireNonNull(modifier);
         this.type = Objects.requireNonNull(type);
         this.statements = Objects.requireNonNull(statements);
+        this.global = isGlobal;
+        this.init = initMode;
         
         for(int i = 0; i < statements.length; ++i)
         {
@@ -56,10 +73,17 @@ public class DeclarationInstruction extends Instruction
     @Override
     public void normalCompile(CompilerState state, CodeManager code) throws CompilerException
     {
+        if(init && state.isStrictModeEnabled())
+            throw new CompilerException("Cannot use 'global init' command in 'strict' mode.");
+        
         for(Statement statement : statements)
         {
             if(statement.isIdentifier())
+            {
                 createElement(state, statement, false);
+                if(global && init)
+                    compileGlobalInit(state, statement, Int32.ZERO);
+            }
             else
             {
                 Operation op = (Operation) statement;
@@ -69,7 +93,9 @@ public class DeclarationInstruction extends Instruction
                 switch(modifier)
                 {
                     case VAR:
-                        task.varCompile(state, code);
+                        if(global && init)
+                            compileGlobalInit(state, op);
+                        else task.varCompile(state, code);
                         break;
                         
                     case CONST:
@@ -87,6 +113,9 @@ public class DeclarationInstruction extends Instruction
     @Override
     public void constCompile(CompilerState state) throws CompilerException
     {
+        if(global)
+            throw new CompilerException("Cannot declare global vars in const environment.");
+        
         if(modifier != TypeModifier.CONST)
             throw new CompilerException("Cannot declare non const elements in const environment.");
         
@@ -106,6 +135,9 @@ public class DeclarationInstruction extends Instruction
     @Override
     public void staticCompile(CompilerState state, CodeManager initCode, CodeManager mainCode) throws CompilerException
     {
+        if(global)
+            throw new CompilerException("Cannot declare global vars out of any main, init or macro.");
+        
         if(modifier == TypeModifier.VAR)
             throw new CompilerException("Cannot declare vars out of any main, init or macro.");
         
@@ -139,16 +171,24 @@ public class DeclarationInstruction extends Instruction
             case VAR:
                 if(isStatic)
                     throw new IllegalStateException();
-                state.getLocalElements().createVariable(statement.toString());
+                if(global)
+                    state.getLocalElements().createGlobalVariable(statement.toString());
+                else state.getLocalElements().createVariable(statement.toString());
                 break;
                 
             case CONST:
+                if(global)
+                    throw new IllegalStateException();
+                
                 if(isStatic || !state.getNamespace().isGlobal())
                     state.getNamespace().addField(NamespaceField.constant(statement.toString()));
                 else state.getLocalElements().createConstant(statement.toString());
                 break;
                 
             case INTERNAL:
+                if(global)
+                    throw new IllegalStateException();
+                
                 if(type == TypeId.INT)
                 {
                     if(isStatic || !state.getNamespace().isGlobal())
@@ -168,6 +208,24 @@ public class DeclarationInstruction extends Instruction
         }
     }
     
+    private void compileGlobalInit(CompilerState state, Operation op) throws CompilerException
+    {
+        if(!op.getOperator().equals(Operator.fromId(OperatorId.ASSIGNATION)))
+            throw new CompilerException("Cannot use '%s' operator in 'global init' assignment. Can only use '='.", op.getOperator());
+        
+        Int32 initValue = StatementCompiler.toTask(state, op.getBinaryRightOperand()).constCompile().getConstantValue();
+        compileGlobalInit(state, op.getBinaryLeftOperand(), initValue);
+    }
+    
+    private void compileGlobalInit(CompilerState state, Statement identifier, Int32 initValue) throws CompilerException
+    {
+        Element var = state.getLocalElements().get(identifier.toString());
+        if(!var.isVariable())
+            throw new IllegalStateException();
+        
+        var.initGlobalVariable(initValue);
+    }
+    
     public static final DeclarationInstruction parse(CodeReader reader, CodeParser parser, Type type, ErrorList errors) throws CompilerException
     {
         int first = reader.getCurrentLine();
@@ -176,6 +234,47 @@ public class DeclarationInstruction extends Instruction
         if(list.isEmpty())
             throw new CompilerException("Expected valid identifier after %s.", type);
         
+        Statement[] statements = parseStatements(list, type);
+        return new DeclarationInstruction(first, last, type.getModifier(), type.getTypeId(), statements, false, false);
+    }
+    
+    public static final DeclarationInstruction parseGlobal(CodeReader reader, CodeParser parser, ErrorList errors) throws CompilerException
+    {
+        int first = reader.getCurrentLine();
+        FragmentList list = parser.parseInlineInstructionAsList(reader, Command.fromId(CommandId.GLOBAL), errors);
+        int last = reader.getCurrentLine();
+        if(list.isEmpty())
+            throw new CompilerException("Expected valid type or 'init' command after %s.", Command.fromId(CommandId.GLOBAL));
+        
+        boolean initMode = false;
+        if(list.get(0).equals(Command.fromId(CommandId.INIT)))
+        {
+            if(list.size() == 1)
+                throw new CompilerException("Expected valid type or 'init' command after %s.", Command.fromId(CommandId.INIT));
+            list = list.subList(1);
+            initMode = true;
+        }
+        
+        Type type;
+        if(list.get(0).isType())
+        {
+            type = list.get(0);
+            if(list.size() == 1)
+                throw new CompilerException("Expected valid identifier after %s.", type);
+            list = list.subList(1);
+        }
+        else
+        {
+            type = Type.fromId(TypeId.INT);
+            type.insertModifier(TypeModifier.VAR);
+        }
+        
+        Statement[] statements = parseStatements(list, type);
+        return new DeclarationInstruction(first, last, type.getModifier(), type.getTypeId(), statements, true, initMode);
+    }
+    
+    private static Statement[] parseStatements(FragmentList list, Type type) throws CompilerException
+    {
         FragmentList[] parts = list.split(Separator.COMMA);
         Statement[] statements = new Statement[parts.length];
         
@@ -187,6 +286,6 @@ public class DeclarationInstruction extends Instruction
             statements[i] = StatementParser.parse(parts[i]);
         }
         
-        return new DeclarationInstruction(first, last, type.getModifier(), type.getTypeId(), statements);
+        return statements;
     }
 }

@@ -1,0 +1,11 @@
+import "stdlib";
+
+main
+{
+	int tuto = 0;
+	if(GetHeadTriggerCount(6, 242) == 0)
+	{
+		tuto = 1;
+		CreateMsgInformationZoom(79, 64, 208, 1000);
+	}
+}

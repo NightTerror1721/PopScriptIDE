@@ -437,6 +437,7 @@ public class ScriptEditor extends JFrame
         jSplitPane2.setMinimumSize(new java.awt.Dimension(200, 200));
         jSplitPane2.setPreferredSize(new java.awt.Dimension(1280, 720));
 
+        pages.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pages.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         jSplitPane2.setRightComponent(pages);
 
